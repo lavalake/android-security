@@ -1,0 +1,12 @@
+1. processState
+    getContextObject -> IServiceManager
+      getStrongProxyForHandle(0)
+2. IPCThreadState
+3. android_util_binder.cpp
+    This file define the JNI method to java class BinderInternal BinderProxy
+    Converstion to/from Java IBinder Object and C++ IBinder instance.
+  
+4. android_os_BinderInternal_getContextObject
+    processState->getContextObject
+5. Intent and ContentProvider are higher-level abstraction of Binder
+6.
