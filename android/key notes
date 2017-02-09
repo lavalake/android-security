@@ -9,4 +9,8 @@
 4. android_os_BinderInternal_getContextObject
     processState->getContextObject
 5. Intent and ContentProvider are higher-level abstraction of Binder
-6.
+6. message handler
+    a reference of messanger send to other process using IPC. Messages are delivered to local handler.
+    Great for efficient call-back from the service to the client
+    message are by default handled by the looper thread
+    all underlying communication is still based on Binder
