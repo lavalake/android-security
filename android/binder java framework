@@ -1,0 +1,3 @@
+mRemote的类型是BinderProxy，BinderProxy是Java层的类，它有一个字段mObject，mObject实际上是JNI使用的字段，mObject的实际类型是C 层的BpBinder类，数据最终都是通过BpBinder提交给服务端的，
+Binder的Java框架原理分析可以看
+http://www.cloudchou.com/android/post-558.html
