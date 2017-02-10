@@ -1,6 +1,8 @@
 1. processState
     getContextObject -> IServiceManager
       getStrongProxyForHandle(0)
+    every service has it's own process and will create one instance of processState. ProcessState will open the binder device and
+    mmap memory into kernel.
 2. IPCThreadState
 3. android_util_binder.cpp
     This file define the JNI method to java class BinderInternal BinderProxy
