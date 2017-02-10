@@ -1,0 +1,14 @@
+1. private key
+  KeyInfo KnoxKeyInfo 
+2. public key
+  X509EncodedKey
+  PKCS8EncodedKey
+  RSAPublicKey
+  ECPublicKey
+3. Hmac
+  HmacSHA1
+  HmacSHA224
+  HmacSHA256
+  HmacSHA384
+  HmacSHA512
+4. certificate
