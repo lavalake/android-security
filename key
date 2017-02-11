@@ -12,3 +12,9 @@
   HmacSHA384
   HmacSHA512
 4. certificate
+  CA : certificate authority
+  certificate is the user's public key sined by CA's private key
+5. key encoding
+  The purpose of encoding is to transform data so that it can be properly (and safely) consumed by a different type of system, e.g. binary data being sent over email, or viewing special characters on a web page. The goal is not to keep information secret, but rather to ensure that it’s able to be properly consumed.
+6. key format
+  x.509
