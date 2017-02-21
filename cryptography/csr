@@ -3,3 +3,12 @@ The CSR contains information identifying the applicant (such as a distinguished 
 must be signed using the applicant's private key. The CSR also contains the public key chosen by the applicant. The CSR may be 
 accompanied by other credentials or proofs of identity required by the certificate authority, and the certificate authority may
 contact the applicant for further information.
+
+
+https://cryptography.io/en/latest/x509/tutorial/
+You generate a private/public key pair.
+You create a request for a certificate, which is signed by your key (to prove that you own that key).
+You give your CSR to a CA (but not the private key).
+The CA validates that you own the resource (e.g. domain) you want a certificate for.
+The CA gives you a certificate, signed by them, which identifies your public key, and the resource you are authenticated for.
+You configure your server to use that certificate, combined with your private key, to server traffic.
