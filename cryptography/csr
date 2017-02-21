@@ -1,0 +1,5 @@
+https://en.wikipedia.org/wiki/Certificate_signing_request
+The CSR contains information identifying the applicant (such as a distinguished name in the case of an X.509 certificate) which
+must be signed using the applicant's private key. The CSR also contains the public key chosen by the applicant. The CSR may be 
+accompanied by other credentials or proofs of identity required by the certificate authority, and the certificate authority may
+contact the applicant for further information.
