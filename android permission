@@ -11,3 +11,4 @@ http://blog.csdn.net/vshuang/article/details/43639211
 4. pid 1 /init is the parent of all user processes.
    pid 2 kthreadd is the parent of all kernel thread
    pid 1911 zygote is the parent of all java thread
+5. pm command
