@@ -1,2 +1,10 @@
 http://pierrchen.blogspot.com/2016/09/an-walk-through-of-android-uidgid-based.html
 http://blog.csdn.net/vshuang/article/details/43639211
+
+1. /acct/uid directory list all uid 
+  root uid 0 gid 0
+  system uid 1000 gid 1000
+2. /data/system/packages.list
+   ties application to its GID(UID in Android terms)
+3. what the pc command titles as USER is acutally the group name
+   root, system, u0_a40
