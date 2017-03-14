@@ -1,0 +1,1 @@
+No setuid/setgid programs. Added support for filesystem capabilities to Android system files and removed all setuid/setguid programs
