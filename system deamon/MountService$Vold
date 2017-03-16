@@ -1,0 +1,6 @@
+Vold Daemon
+MountService contains most system API that deal with volume manamgement, but it runs a system user so can not actually mount
+and unmount disk volume.
+Vold runs as root.
+Vold exposed a local socket /dev/socket/vold and only root and members of the mount group
+system_server inludes mount (GID1099), so MountService can access vold's command socket.
