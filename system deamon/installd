@@ -1,0 +1,4 @@
+packageManagerService runs in system server process with system UID and lacks root privilges. PackageManagerService delegates the
+operations to the installd.
+The installer class connects to installd through the /dev/socket/installd unix domain socket.
+Installd does not run as root but take advantage of CAP_DAC_OVERRIDE and CAP_DAC_CHOWN
