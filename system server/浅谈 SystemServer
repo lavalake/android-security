@@ -1,0 +1,701 @@
+http://www.3dobe.com/archives/93/
+ Dobe
+Dobe means idiot~~~
+搜索关键字
+输入关键字搜索
+ 搜索
+首页其他资料关于
+浅谈 SystemServer
+
+作者: Zero 时间: 2015-04-01 12:26 分类: Android
+SystemServer - Android Framework 服务的核心进程，它管理一切与 Android 相关的服务，包括窗口、安装的应用、当前运行的应用、通知、网络、时间、电量、同步帐号、音频、视频、蓝牙、WIFI、地理位置 等一系列常用以及不常用的功能。盗用如下一张图，就可以看出从开机到SystemServer 的创建过程，以及桌面点击与AMS的交互：
+android.init.png
+
+图 0.1 Android 系统启动
+
+本文从 Android 4.4 源码出发，SystemServer 进程的创建开始，把 context manager 进程和 SystemServer 的初始化流程过一遍，相信会对看其他模块的源码有很大的帮助。
+
+1. 从zygote 到 SystemServer 进程入口类
+
+SystemServer 进程的大体创建流程如图1.1所示：
+zygoteSystemServer.jpg
+
+图 1.1 SystemServer 进程创建流程（Android 4.4）
+
+SystemServer 进程是在 Zygote 启动时创建的，也就是说 SystemServer 是 Zygote fork 的第一个子进程，Zygote 是 init 进程通过 init.rc 脚本启动：
+
+service zygote /system/bin/app_process -Xzygote /system/bin --zygote --start-system-server
+    class main
+    socket zygote stream 660 root system
+    onrestart write /sys/android_power/request_state wake
+    onrestart write /sys/power/state on
+    onrestart restart media
+    onrestart restart netd
+即通过 app_process 启动 zygote，在 app_main.cpp 中的 main 函数里：
+
+if (zygote) {
+    runtime.start("com.android.internal.os.ZygoteInit",
+            startSystemServer ? "start-system-server" : "");
+}
+通过 native 反调 Java 执行 ZygoteInit 的 main 函数的关键代码段，进入 java 层：
+
+public static void main(String argv[]) {
+    try {
+        ......
+        registerZygoteSocket(); // 注册 zygote socket，用于接收请求fork进程
+        ......
+        preload(); // preloadClasses(); preloadResources(); preloadOpenGL();
+        ......
+        // Do an initial gc to clean up after startup
+        gc();
+        ......
+        if (argv[1].equals("start-system-server")) {
+            startSystemServer(); // 启动 SystemServer
+        } else if (!argv[1].equals("")) {
+            throw new RuntimeException(argv[0] + USAGE_STRING);
+        }
+        ......
+        runSelectLoop(); // select 开始接收 socket 请求
+
+        closeServerSocket();
+    } catch (MethodAndArgsCaller caller) {
+        caller.run();
+    } catch (RuntimeException ex) {
+        ......
+    }
+}
+展开 startSystemServer() 函数：
+
+/**
+ * Prepare the arguments and fork for the system server process.
+ */
+private static boolean startSystemServer()
+        throws MethodAndArgsCaller, RuntimeException {
+    long capabilities = posixCapabilitiesAsBits(
+        OsConstants.CAP_KILL,
+        OsConstants.CAP_NET_ADMIN,
+        OsConstants.CAP_NET_BIND_SERVICE,
+        OsConstants.CAP_NET_BROADCAST,
+        OsConstants.CAP_NET_RAW,
+        OsConstants.CAP_SYS_MODULE,
+        OsConstants.CAP_SYS_NICE,
+        OsConstants.CAP_SYS_RESOURCE,
+        OsConstants.CAP_SYS_TIME,
+        OsConstants.CAP_SYS_TTY_CONFIG
+    );
+    /* Hardcoded command line to start the system server */
+    String args[] = {
+        "--setuid=1000", // UID=1000
+        "--setgid=1000", // GID=1000
+        "--setgroups=1001,1002,1003,1004,1005,1006,1007,1008,1009,1010,1018,1032,3001,3002,3003,3006,3007",
+        "--capabilities=" + capabilities + "," + capabilities,
+        "--runtime-init",
+        "--nice-name=system_server", // 进程名是 system_server
+        "com.android.server.SystemServer", // 类入口是 SystemServer
+    };
+    ZygoteConnection.Arguments parsedArgs = null;
+
+    int pid;
+
+    try {
+        parsedArgs = new ZygoteConnection.Arguments(args); // 解析上面的 args 字符串
+        ZygoteConnection.applyDebuggerSystemProperty(parsedArgs);
+        ZygoteConnection.applyInvokeWithSystemProperty(parsedArgs);
+
+        /* Request to fork the system server process */
+        pid = Zygote.forkSystemServer(
+                parsedArgs.uid, parsedArgs.gid,
+                parsedArgs.gids,
+                parsedArgs.debugFlags,
+                null,
+                parsedArgs.permittedCapabilities,
+                parsedArgs.effectiveCapabilities);
+    } catch (IllegalArgumentException ex) {
+        throw new RuntimeException(ex);
+    }
+
+    /* For child process */
+    if (pid == 0) {
+        handleSystemServerProcess(parsedArgs);
+    }
+
+    return true;
+}
+通过参数 args 可以看出我们想启动的 SystemServer 的入口类是 com.android.server.SystemServer。通过 Zygote.forkSystemServer() 函数就将 SystemServer 进程 fork 出来了（关于 Zygote 与 Dalvik 的介绍可以参考这篇文章，forkSystemServer 函数在这里不再展开了），handleSystemServerProcess 是作为子进程的 SystemServer 执行的后续操作，包括设置进程名、启动 Binder 线程池等，当然最重要的一步就是 RuntimeInit.zygoteInit。
+
+public static final void zygoteInit(int targetSdkVersion, String[] argv)
+        throws ZygoteInit.MethodAndArgsCaller {
+    if (DEBUG) Slog.d(TAG, "RuntimeInit: Starting application from zygote");
+
+    redirectLogStreams();
+
+    commonInit();
+    nativeZygoteInit(); // Binder 线程池创建
+
+    applicationInit(targetSdkVersion, argv);
+}
+在《浅析 Android 消息机制》中已经提到了 Binder 线程池的创建就是通过 zygoteInit 这个函数（当然实际是这一行nativeZygoteInit()，然后执行 applicationInit()：
+
+private static void applicationInit(int targetSdkVersion, String[] argv)
+        throws ZygoteInit.MethodAndArgsCaller {
+    ......
+    invokeStaticMain(args.startClass, args.startArgs); // 启动SystemServer.main
+}
+在这里执行 SystemServer 的 main 函数。
+
+2. SystemServer 初始化 与 Context Manager
+
+进入 java 层后，SystemServer 进程的初始化基本是在添加服务，也就是与 Context Manager 打交道了。本节首先对 Context Manager 进行简单讲解，然后继续来看 SystemServer 的初始化。
+
+2.1 浅析 Context Manager
+
+ServiceManager 所服务的进程也被叫做 Context Manager 进程，引用一段其他网站的靠谱说明吧：
+
+Context Manager是一個管理Android系統服務的重要進程。系統服務是組成Android Framework的重要組件，提供從相機、音頻、視頻處理到各種應用程序制作所需要的重要的API。
+Context Manager提供運行於Android內的各種系統服務信息。應用程序或Framework內部模塊在調用系統服務時，需要先向服務管理器申請，而後通過Binder IPC調用系統服務。
+在系統启動時，Android所有系統服務都要把各自的handler信息注冊到Context Manager，此時，Binder IPC用來進行進程間的通信。
+
+提供 IPC 接口的类就是 ServiceManager 了，接口分为 java 和 C++ 两种。
+
+2.1.1 ServiceManager 的 java 接口
+
+在 java 层，基本都是通过 ServiceManager 的 addService 方法进行添加服务：
+
+public static void addService(String name, IBinder service) {
+    try {
+        getIServiceManager().addService(name, service, false);
+    } catch (RemoteException e) {
+        Log.e(TAG, "error in addService", e);
+    }
+}
+如在 SystemServer 初始化时的 PowerManagerService 服务的添加：
+
+power = new PowerManagerService();
+ServiceManager.addService(Context.POWER_SERVICE, power);
+addService 方法实则是对 ServiceManager 进程的 Binder 调用，getIServiceManager() 方法拿到的是 ServiceManager 的 Binder 对象：
+
+private static IServiceManager getIServiceManager() {
+    if (sServiceManager != null) {
+        return sServiceManager;
+    }
+
+    // Find the service manager
+    sServiceManager = ServiceManagerNative.asInterface(BinderInternal.getContextObject());
+    return sServiceManager;
+}
+BinderInternal.getContextObject() 就是去获取远程 IBinder 对象了，这个对象具体是怎么来的呢：
+BinderInternal.jpg
+
+图 2.1 BinderInternal.getContextObject() 获得 IBinder 对象的流程（Android 4.4）
+
+
+在《浅析 Android 消息机制》中谈 Binder 线程池的时候已经见识过 ProcessState 对象了，它是进程范围的单例，通过 ProcessState::self()->getContextObject(NULL) 拿到的就是来自 Context Manager 的远程 IBinder 对象，该方法实则调用 getStrongProxyForHandle(0) 方法，这里 0 就是 context manager 在 binder 通信时的 handle，我们来看下它的 getStrongProxyForHandle() 方法是如何获取 IBinder 对象的：
+sp<IBinder> ProcessState::getStrongProxyForHandle(int32_t handle)  // 这里传入的 handle 值是 0
+{
+    sp<IBinder> result;
+    AutoMutex _l(mLock);
+1.  handle_entry* e = lookupHandleLocked(handle);
+    if (e != NULL) {
+        IBinder* b = e->binder;
+        if (b == NULL || !e->refs->attemptIncWeak(this)) {
+            if (handle == 0) {
+                Parcel data;
+2.              status_t status = IPCThreadState::self()->transact(
+                        0, IBinder::PING_TRANSACTION, data, NULL, 0);
+                if (status == DEAD_OBJECT)
+                   return NULL;
+            }
+3.          b = new BpBinder(handle); 
+            e->binder = b;
+            if (b) e->refs = b->getWeakRefs();
+            result = b;
+        } else {
+            result.force_set(b);
+            e->refs->decWeak(this);
+        }
+    }
+    return result;
+}
+可以看出该函数总体分三步，第一步是通过 handle 找到已经创建好的 handle_entry 对象，如果没找到则创建一个空的：
+
+ProcessState::handle_entry* ProcessState::lookupHandleLocked(int32_t handle)
+{
+    const size_t N=mHandleToObject.size(); // Vector<handle_entry> mHandleToObject;
+    if (N <= (size_t)handle) { // 如果不存在，则创建一个然后插入到 mHandleToObject 中
+        handle_entry e;
+        e.binder = NULL;
+        e.refs = NULL;
+        status_t err = mHandleToObject.insertAt(e, N, handle+1-N);
+        if (err < NO_ERROR) return NULL;
+    }
+    return &mHandleToObject.editItemAt(handle);
+}
+handle_entry 是一个 IBinder 对象和一个若引用对象的结构体：
+
+struct handle_entry {
+    IBinder* binder;
+    RefBase::weakref_type* refs;
+};
+新建的 handle_entry 的成员都是 NULL，进入第二步。我们发现第二步直接使用了 IPCThreadState 的 transact 方法，这也是 Android 4.4 刚有的，之前是没有第二步的，引用一下源码的注释：
+
+The context manager is the only object for which we create a BpBinder proxy without already holding a reference. Perform a dummy transaction to ensure the context manager is registered before we create the first local reference to it (which will occur when creating the BpBinder). If a local reference is created for the BpBinder when the context manager is not present, the driver will fail to provide a reference to the context manager, but the driver API does not return status.
+
+可以看出第二步就是为了确保 context manager 进程已经启动了。第三步就是靠这个 handler 创建一个新的 BpBinder 对象（客户端），最后返回这个 BpBinder 对象。
+
+2.1.2 ServiceManager 的 C++ 接口
+
+前面说完了 ServiceManager 的 java 接口，总结下就是靠 ServiceManager 的 getIServiceManager() 拿到进程单例的 IServiceManager 对象。在 native 层其实也一样了，是靠 IServiceManager.cpp 中的 defaultServiceManager() 方法拿到进程单例 IServiceManager 对象，当然这个对象是 C++ 的。
+
+sp<IServiceManager> defaultServiceManager()
+{
+    if (gDefaultServiceManager != NULL) return gDefaultServiceManager;
+
+    {
+        AutoMutex _l(gDefaultServiceManagerLock);
+        while (gDefaultServiceManager == NULL) {
+            gDefaultServiceManager = interface_cast<IServiceManager>(
+                ProcessState::self()->getContextObject(NULL));
+            if (gDefaultServiceManager == NULL)
+                sleep(1);
+        }
+    }
+    
+    return gDefaultServiceManager;
+}
+interface_cast 是个模版函数，在这里实际调用的是 IServiceManager::asInterface()：
+
+template<typename INTERFACE>
+inline sp<INTERFACE> interface_cast(const sp<IBinder>& obj)
+{
+    return INTERFACE::asInterface(obj);
+}
+可以看出，也是通过 ProcessState::self()->getContextObject(NULL) 拿到 Context Manager 的远程 IBinder 对象，然后用 IServiceManager::asInterface() 转为 IServiceManager，跟 java 层的用法几乎是很像了。举个例子，main_mediaserver 进程添加 MediaPlayerService 服务：
+
+void MediaPlayerService::instantiate() {
+    defaultServiceManager()->addService(
+            String16("media.player"), new MediaPlayerService());
+}
+2.1.3 Context Manager 的启动与 addService
+
+Context Manager 进程 init 进程通过 init.rc 脚本启动的：
+
+service servicemanager /system/bin/servicemanager
+    class core
+    user system
+    group system
+    critical
+    onrestart restart healthd
+    onrestart restart zygote
+    onrestart restart media
+    onrestart restart surfaceflinger
+    onrestart restart drm
+/system/bin/servicemanager 的入口在 /framework/native/cmds/servicemanager：
+
+int main(int argc, char **argv)
+{
+    struct binder_state *bs;
+    void *svcmgr = BINDER_SERVICE_MANAGER; // BINDER_SERVICE_MANAGER=0
+
+    bs = binder_open(128*1024); // 打开 Binder 设备
+
+    if (binder_become_context_manager(bs)) { // 指定 context manager 的 handle 索引值为0
+        ALOGE("cannot become context manager (%s)\n", strerror(errno));
+        return -1;
+    }
+
+    svcmgr_handle = svcmgr; // handle = 0
+    binder_loop(bs, svcmgr_handler); // 循环监听
+    return 0;
+}
+前面提到，context manager 在 binder 通信时的 handle 为0，这个 0 就是在这里指定的。这段代码展示的就是服务端与 Binder 驱动的通信过程，很多博客都是用 servicemanager 的启动来讲 Binder，本文不是讲 Binder 的，关键步骤已经有注释，直接来看循环监听中的处理函数 svcmgr_handler 中对 addService 请求的处理：
+
+int svcmgr_handler(struct binder_state *bs,
+               struct binder_txn *txn,
+               struct binder_io *msg,
+               struct binder_io *reply)
+{
+    ......
+    if (txn->target != svcmgr_handle) // handle 不是 0，则失败
+        return -1;
+    ......
+    switch(txn->code) {
+    ......
+    case SVC_MGR_ADD_SERVICE:
+        s = bio_get_string16(msg, &len);
+        ptr = bio_get_ref(msg);
+        allow_isolated = bio_get_uint32(msg) ? 1 : 0;
+        if (do_add_service(bs, s, len, ptr, txn->sender_euid, allow_isolated))
+            return -1;
+        break;
+    ......
+    }
+    ......
+}
+SVC_MGR_ADD_SERVICE 这条 case 最后执行的是 do_add_service 函数，其中 s 就是注册的服务名，len 是名字的长度：
+
+do_add_service.png
+
+图 2.1 do_add_service() 流程图（Android 4.4）
+
+
+其中 svc_can_register 就是检测调用者是否有系统权限，当然不光是 UID 为0或者1000的，mediaserver 进程（1013）、DRM 服务进程（1019）、NFC 子系统（1027）、蓝牙子系统（1002）、RIL（1001）、keystore 子系统（1017）也均有权限：
+int svc_can_register(unsigned uid, uint16_t *name)
+{
+    unsigned n;
+
+    if ((uid == 0) || (uid == AID_SYSTEM))
+        return 1;
+
+    for (n = 0; n < sizeof(allowed) / sizeof(allowed[0]); n++)
+        if ((uid == allowed[n].uid) && str16eq(name, allowed[n].name))
+            return 1;
+
+    return 0;
+}
+find_svc 通过比对名字是否一致来匹配服务，如果服务已经存在则将其替换，否则新建一个 svcinfo 对象插入到服务列表（svclist）中。
+
+2.1.4 如何获取服务
+
+前面已经讲了如何添加服务，获取服务也是相似，在 java 层的接口是 ServiceManager 的 getService 方法，通过 getIServiceManager() 获取 IServiceManager 对象，调用其 getService 方法：
+
+public static IBinder getService(String name) {
+    try {
+        IBinder service = sCache.get(name);
+        if (service != null) {
+            return service;
+        } else {
+            return getIServiceManager().getService(name);
+        }
+    } catch (RemoteException e) {
+        Log.e(TAG, "error in getService", e);
+    }
+    return null;
+}
+C++ 则仍是通过 defaultServiceManager() 获取 IServiceManager 单例然后执行 getService 方法，比如获取 mediaplayer服务：
+
+sp<IBinder> binder = defaultServiceManager()->getService(String16("media.player"));
+sp<IMediaPlayerService> service = interface_cast<IMediaPlayerService>(binder);
+对应的，context manager 进程中 svcmgr_handler 函数对 SVC_MGR_GET_SERVICE 的处理：
+
+case SVC_MGR_GET_SERVICE:
+    s = bio_get_string16(msg, &len);
+    ptr = do_find_service(bs, s, len, txn->sender_euid);
+    if (!ptr)
+        break;
+    bio_put_ref(reply, ptr);
+    return 0;
+do_find_service 找到对应服务返回该服务对应的 Binder 句柄，bio_put_ref 将该 Binder 实体写回到 reply 中。
+
+2.2 SystemServer 初始化
+
+前面谈了那么久的 ServiceManager 就是因为在 SystemServer 初始化时执行了一系列的添加服务的操作。我们继续来看 SystemServer 的初始化 - SystemServer 的 main 函数：
+
+public static void main(String[] args) {
+    ......
+
+    System.loadLibrary("android_servers");
+
+    Slog.i(TAG, "Entered the Android system server!");
+
+    // Initialize native services.
+    nativeInit();
+
+    // This used to be its own separate thread, but now it is
+    // just the loop we run on the main thread.
+    ServerThread thr = new ServerThread();
+    thr.initAndLoop();
+}
+android_servers 模块的mk文件在 /frameworks/base/services/jni/Android.mk，有兴趣的可以看下。
+nativeInit 函数是在 /frameworks/base/services/jni/com_android_server_SystemServer.cpp 中：
+
+static void android_server_SystemServer_nativeInit(JNIEnv* env, jobject clazz) {
+    char propBuf[PROPERTY_VALUE_MAX];
+    property_get("system_init.startsensorservice", propBuf, "1");
+    if (strcmp(propBuf, "1") == 0) {
+        // Start the sensor service
+        SensorService::instantiate();
+    }
+}
+可以发现是初始化 SensorService，instantiate() 实际是 SensorService 的模版父类 BinderService 的一个方法，这里的初始化操作实际就是将 Sensor 服务加到 ServiceManager 中：
+
+class BinderService
+{
+public:
+    static status_t publish(bool allowIsolated = false) {
+        sp<IServiceManager> sm(defaultServiceManager());
+        return sm->addService(
+                String16(SERVICE::getServiceName()),
+                new SERVICE(), allowIsolated);
+    }
+    ......
+    static void instantiate() { publish(); }
+    ......
+}
+然后是执行 ServerThread 的 initAndLoop 操作，在这里将完成大部分的服务添加操作，下面列举下这些添加的服务(按添加顺序)：
+
+1.PowerManagerService
+2.DisplayManagerService
+3.TelephonyRegistry
+4.SchedulingPolicyService
+5.ActivityManagerService
+6.EntropyMixer
+7.UserManagerService
+8.AccountManagerService
+9.ContentService
+10.BatteryService
+11.VibratorService
+12.ConsumerIrService
+13.AlarmManagerService
+14.WindowManagerService
+15.InputManagerService
+16.InputMethodManagerService
+17.AccessibilityManagerService
+18.MountService
+19.LockSettingsService
+20.DevicePolicyManagerService
+21.StatusBarManagerService
+22.ClipboardService
+23.NetworkManagementService
+24.TextServicesManagerService
+25.NetworkStatsService
+26.NetworkPolicyManagerService
+27.WifiP2pService
+28.WifiService
+29.ConnectivityService
+30.NsdService
+31.UpdateLockService
+32.NotificationManagerService
+33.DeviceStorageMonitorService
+34.LocationManagerService
+35.CountryDetectorService
+36.SearchManagerService
+37.DropBoxManagerService
+38.WallpaperManagerService
+39.AudioService
+40.UsbService
+41.SerialService
+42.BackupManagerService
+43.AppWidgetService
+44.DiskStatsService
+45.SamplingProfilerService
+46.CommonTimeManagementService
+47.DreamManagerService
+48.AssetAtlasService
+49.PrintManagerService
+50.MediaRouterService
+这里注意四个服务：WindowManagerService、ActivityManagerService、PackageManagerService、ContentService，他们的初始化是先执行 main 函数然后再 addService 到 context manager 中，拿 WindowManagerService 来说：
+
+wm = WindowManagerService.main(context, power, display, inputManager,
+                wmHandler, factoryTest != SystemServer.FACTORY_TEST_LOW_LEVEL,
+                !firstBoot, onlyCore);
+ServiceManager.addService(Context.WINDOW_SERVICE, wm);
+main 函数是做一些初始化工作，在所有服务都 add 完毕后，一些服务会执行 systemReady() 函数或者是 systemRunning() 函数，作为后续的工作。最后执行 Looper.loop() 开始消息循环。总的来说，initAndLoop() 函数基本流程就是：
+
+各项服务初始化 -> 各项服务添加到contextmanager中 -> 系统初始化成功的后续工作 -> 消息循环。
+
+3. 获取 SystemServer 的服务
+
+我们先来看下 Context 这个类的这些以“_SERVICE”为结尾常量命名的服务名常量，这些字符串也就是在 addService 时传入的服务名称，也是在 context manager 中这些服务的唯一标识，他们的注释都指明了自己代表的服务的功能，比如：
+
+/**
+ * Use with getSystemService to retrieve a
+ * android.view.WindowManager for accessing the system's window
+ * manager.
+ *
+ * @see #getSystemService
+ * @see android.view.WindowManager
+ */
+public static final String WINDOW_SERVICE = "window";
+当我们想在当前屏幕上添加一个悬浮窗时，我们就会这样用到：
+
+WindowManager winMgr = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+winMgr.addView(view, params);
+本节就主要来过一遍 context.getSystemService() 方法与 Context 的初始化服务映射流程。
+
+3.1 SYSTEM_SERVICE_MAP 服务映射
+
+从《通过 startService 在新进程中启动服务的流程（二）》和《浅析 android 应用界面的展现流程》中可以看出，Activity 和 Service 中的 Context 均是在 ActivityThread 调用 Activity 或者 Service 的 attach 方法时赋值的，类型为 ContextImpl。我们来看下 ContextImpl 类被加载时的初始化：
+
+static {
+
+    registerService(ACCESSIBILITY_SERVICE, new ServiceFetcher() {
+            public Object getService(ContextImpl ctx) {// 覆写了getService，不用 cache
+                return AccessibilityManager.getInstance(ctx);
+            }});
+
+    registerService......
+
+    registerService(ACTIVITY_SERVICE, new ServiceFetcher() {
+            public Object createService(ContextImpl ctx) {// 覆写了createService，用cache
+                return new ActivityManager(ctx.getOuterContext(), ctx.mMainThread.getHandler());
+            }});
+
+    registerService......
+
+}
+可见 ContextImpl 类在初始化时已经将这些服务的客户端代理对象注册到映射表中了，key 就是服务名，value 是 ServiceFetcher 对象，上面的代码简单展现了两个服务的注册，一个用cache一个没用cache，展开 registerService：
+
+private static final HashMap<String, ServiceFetcher> SYSTEM_SERVICE_MAP =
+        new HashMap<String, ServiceFetcher>();
+
+private static int sNextPerContextServiceCacheIndex = 0;
+private static void registerService(String serviceName, ServiceFetcher fetcher) {
+    if (!(fetcher instanceof StaticServiceFetcher)) {
+        fetcher.mContextCacheIndex = sNextPerContextServiceCacheIndex++;
+    }
+    SYSTEM_SERVICE_MAP.put(serviceName, fetcher);
+}
+可见在服务代理类之外又封装了一层 ServiceFetcher，并将其添加到 SYSTEM_SERVICE_MAP 中。ServiceFetcher 使用了一个比较特殊的 cache：
+
+/*package*/ static class ServiceFetcher {
+    int mContextCacheIndex = -1; // 这个是按添加顺序指定的该服务的编号
+
+    /**
+     * Main entrypoint; only override if you don't need caching.
+     */
+    public Object getService(ContextImpl ctx) {
+        ArrayList<Object> cache = ctx.mServiceCache;
+        Object service;
+        synchronized (cache) {
+            if (cache.size() == 0) {
+                // Initialize the cache vector on first access.
+                // At this point sNextPerContextServiceCacheIndex
+                // is the number of potential services that are
+                // cached per-Context.
+                for (int i = 0; i < sNextPerContextServiceCacheIndex; i++) {
+                    cache.add(null); // 第一次get时会初始化所有的需要cache的服务代理空位
+                }
+            } else {
+                service = cache.get(mContextCacheIndex);
+                if (service != null) { // 不是第一次get，编号即下标，拿去cache的服务代理
+                    return service;
+                }
+            }
+            service = createService(ctx);
+            cache.set(mContextCacheIndex, service);
+            return service;
+        }
+    }
+
+    /**
+     * Override this to create a new per-Context instance of the
+     * service.  getService() will handle locking and caching.
+     */
+    public Object createService(ContextImpl ctx) { // 要么重写 createService 使用cache，要么重写 getService 不用cache
+        throw new RuntimeException("Not implemented");
+    }
+}
+这个 cache 总体来讲效率还是很高的，但是还有疑问，比如为何不用 SparseArray，有知道的烦请不吝赐教。
+
+3.2 context.getSystemService()
+
+通过上一节的介绍，我们知道了系统服务的客户端代理均存在全局变量 SYSTEM_SERVICE_MAP 映射中，那么也就能猜到，context.getSystemService() 实际也是从这个映射中拿了：
+
+public Object getSystemService(String name) {
+    ServiceFetcher fetcher = SYSTEM_SERVICE_MAP.get(name);
+    return fetcher == null ? null : fetcher.getService(this);
+}
+context.getSystemService() 拿到的是实际服务的代理的 wrapper，为什么这么说呢？这里拿 WindowManager 来说明：
+在 ContextImpl 注册服务映射时：
+
+registerService(WINDOW_SERVICE, new ServiceFetcher() {
+    Display mDefaultDisplay;
+    public Object getService(ContextImpl ctx) {
+        Display display = ctx.mDisplay;
+        if (display == null) {
+            if (mDefaultDisplay == null) {
+                DisplayManager dm = (DisplayManager)ctx.getOuterContext().
+                    getSystemService(Context.DISPLAY_SERVICE);
+                    mDefaultDisplay = dm.getDisplay(Display.DEFAULT_DISPLAY);
+            }
+            display = mDefaultDisplay;
+        }
+        return new WindowManagerImpl(display);
+}});
+可见 getSystemService 拿到的是 WindowManagerImpl 对象：
+
+public final class WindowManagerImpl implements WindowManager {
+    private final WindowManagerGlobal mGlobal = WindowManagerGlobal.getInstance();
+    ......
+}
+WindowManagerGlobal 是包含了 IBinder 对象（IWindowManager）的单例，这是对 wms 的 wrapper，这个 IBinder 对象在真正被使用时才会被延迟加载（通过 getWindowManagerService 方法，如下代码所示），当然它也是管理当前应用窗口 session、顶层窗体布局ViewRootImpl 的类，前面提到的添加悬浮窗时用到的 addView 实际也是调用的它的 addView 方法。
+
+public static IWindowManager getWindowManagerService() {
+    synchronized (WindowManagerGlobal.class) {
+        if (sWindowManagerService == null) {
+            sWindowManagerService = IWindowManager.Stub.asInterface(
+                    ServiceManager.getService("window"));
+        }
+        return sWindowManagerService;
+    }
+}
+可见实际上也是调用 ServiceManager.getService 方法了（详见 2.1.4 节）。
+
+4. 总结
+
+本文从 SystemServer 进程启动入手分析，又简单介绍了 context manager 的启动、添加服务、查找服务，以及通过 Context.getSystemService 查找系统服务的实现，我们已经能基本理解了 SystemServer 作为 Android 服务中心的重要性以及 Context Manager 作为服务中转站的作用。本文并没有对 Binder 机制进行深入分析，我们会在后续的文章中把Binder和SystemServer串起来继续作深入讲解。
+
+标签: none
+
+添加新评论
+
+称呼
+
+
+Email
+
+
+网站
+
+http://
+
+内容
+
+
+提交评论
+
+上一篇: 浅析 Android 消息机制
+下一篇: 数据处理神器storm的理解与思考 ——让你的数据化作行云流水
+最新文章
+微服务介绍与实践总结
+条件随机场介绍（译）Introduction to Conditional Random Fields
+理解 Javascript 的 async await
+基于lucene的内嵌式kv存储
+CommonServiceManager
+Binder 原理浅析 # 数据传输的集装箱 Parcel
+Android 中的自启行为浅析 # Broadcast（二）
+Android 中的自启行为浅析 # Broadcast（一）
+Dalvik虚拟机 - 类的加载
+Android 权限管理 —— AppOps
+分类
+编程语言
+Android
+前端
+杂
+数据后台
+Fuchsia
+Robot Operating System
+chromium
+跨进程
+machine learing
+归档
+January 2017
+November 2016
+October 2016
+July 2016
+March 2016
+February 2016
+January 2016
+October 2015
+August 2015
+April 2015
+March 2015
+February 2015
+January 2015
+July 2013
+April 2013
+其它
+文章 RSS
+评论 RSS
+Typecho
+© 2017 Dobe. 京ICP备13030676号-2.
