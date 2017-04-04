@@ -16,3 +16,15 @@
     Great for efficient call-back from the service to the client
     message are by default handled by the looper thread
     all underlying communication is still based on Binder
+7. Looper
+8. binder thread pool
+    every app main thread will have a binder thread pool when the process created
+9. ActivityThread
+    handlerThread
+10. poolthread
+11. thread TLS
+12. activity manager service
+    ActivityThread.attach() will attach a ApplicationThread to AMS
+    bindApplication
+    scheduleCreateService
+    scheduleServiceArgs
