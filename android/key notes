@@ -22,9 +22,14 @@
 9. ActivityThread
     handlerThread
 10. poolthread
+    threadPools Executor
 11. thread TLS
 12. activity manager service
     ActivityThread.attach() will attach a ApplicationThread to AMS
     bindApplication
     scheduleCreateService
     scheduleServiceArgs
+13. multi thread
+    ThreadPoolExecutor
+    IntentService
+    AsyncTask
