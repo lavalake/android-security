@@ -1,0 +1,2 @@
+1. why async task is bad
+if it is an inner class of your Activity/Fragment, it holds an implicit reference to it, which is bad practice, because Activity/Fragment can be destroyed on configuration change, but they will be kept in memory while worker thread is alive; if it is declared as standalone or static inner class and you are using reference to a Context to update views, you should always check whether it is null or not).
