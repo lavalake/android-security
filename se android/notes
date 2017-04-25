@@ -2,3 +2,7 @@
   Discretionary Access Control: Defined by the owner of the resource. Use UID and GID to confine the AC. Coarse Grained AC.
 2. MAC
   Mandatory AC, use system wide policy. Can confine the AC even with Root or system Deamon. Can avoid previlige escalation.
+  Confine privileged daemons.
+  Prevent privilege escalation by apps
+3. centralized analyzable policy
+  
