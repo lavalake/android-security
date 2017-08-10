@@ -1,2 +1,41 @@
 adb shell service list
 adb shell dumpsys
+  https://developer.android.com/studio/profile/investigate-ram.html
+  
+https://stackoverflow.com/questions/11201659/whats-the-android-adb-shell-dumpsys-tool-and-what-are-its-benefits
+  
+
+        Looking at the source code for dumpsys and service, you can get the list of services available by executing this:
+
+        adb shell service list
+
+        You can then supply the service name you are interested in to dumpsys to get the specific information. For example (note that not all services provide dump info):
+
+        adb shell dumpsys activity
+        adb shell dumpsys cpuinfo
+        adb shell dumpsys battery
+
+        As you can see in the code (and in K_Anas's answer), if you call dumpsys without any service name, it will dump the info on all services in one big dump:
+
+        adb shell dumpsys
+
+        Some services can receive additional arguments on what to show which normally is explained if you supplied a -h argument, for example:
+
+        adb shell dumpsys activity -h
+        adb shell dumpsys window -h
+        adb shell dumpsys meminfo -h
+        adb shell dumpsys package -h
+        adb shell dumpsys batteryinfo -h
+        
+        
+        
+ 
+
+To display the activity stack, run the following command :
+
+adb shell dumpsys activity activities
+in addition to adb shell dmpsys activity you can get for each list for example adb shell dmpsys activity activities for ACTIVITY MANAGER ACTIVITIES that contains main stack, Running activities and Recent tasks.dumpsys activity intents for pending intents; dumpsys activity broadcasts for broadcast state; dumpsys activity providers for content proviers; dumpsys activity services for services; dumpsys activity processes for running
+
+
+
+
