@@ -1,0 +1,2 @@
+permissions assigned to application will be mapped to GIDs an assigned as supplementary GIDs to the proccess.
+Permission to GIDs mappings for build-in permissions are defined in /etc/permission/platform.xml
