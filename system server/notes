@@ -1,2 +1,5 @@
 1. installd
 2. SystemServiceManager
+3. app_process
+  exec app_process to start service: activityManager
+  
