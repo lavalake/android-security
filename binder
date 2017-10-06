@@ -35,3 +35,5 @@ IBinder
  
  3. 图解Android - Binder 和 Service
  http://www.cnblogs.com/samchen2009/p/3316001.html
+
+ 4. client callback IBinder
