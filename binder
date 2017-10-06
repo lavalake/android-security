@@ -8,3 +8,30 @@ http://www.cloudchou.com/android/post-468.html
 http://www.cloudchou.com/android/post-547.html
 http://www.cloudchou.com/android/post-534.html
 http://www.cloudchou.com/wp-content/uploads/2014/06/java_binder_framework.png
+IBinder
+  Do not implement this interface directly, instead extend from {@link Binder}.
+  In effect,
+  other processes appear to use as additional threads that you did not creat executing in your own process.
+  * <p>The Binder system also supports recursion across processes.  For example
+ * if process A performs a transaction to process B, and process B while
+ * handling that transaction calls transact() on an IBinder that is implemented
+ * in A, then the thread in A that is currently waiting for the original
+ * transaction to finish will take care of calling Binder.onTransact() on the
+ * object being called by B.  This ensures that the recursion semantics when
+ * calling remote binder object are the same as when calling local objects.
+ 
+ * <p>When working with remote objects, you often want to find out when they
+ * are no longer valid.  There are three ways this can be determined:
+ * <ul>
+ * <li> The {@link #transact transact()} method will throw a
+ * {@link RemoteException} exception if you try to call it on an IBinder
+ * whose process no longer exists.
+ * <li> The {@link #pingBinder()} method can be called, and will return false
+ * if the remote process no longer exists.
+ * <li> The {@link #linkToDeath linkToDeath()} method can be used to register
+ * a {@link DeathRecipient} with the IBinder, which will be called when its
+ * containing process goes away.
+ * </ul>
+ 
+ 3. 图解Android - Binder 和 Service
+ http://www.cnblogs.com/samchen2009/p/3316001.html
