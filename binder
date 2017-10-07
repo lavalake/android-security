@@ -37,3 +37,7 @@ IBinder
  http://www.cnblogs.com/samchen2009/p/3316001.html
 
  4. client callback IBinder
+ 5. BinderThread
+    * Denotes that the annotated method should only be called on the binder thread.
+    * If the annotated element is a class, then all methods in the class should be called
+    * on the binder thread.
