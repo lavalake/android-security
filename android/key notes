@@ -21,6 +21,7 @@
     every app main thread will have a binder thread pool when the process created
 9. ActivityThread
     handlerThread
+    applicationThread
 10. poolthread
     threadPools Executor
 11. thread TLS
@@ -33,3 +34,5 @@
     ThreadPoolExecutor
     IntentService
     AsyncTask
+14. messageQueue
+15. broadcastReceiver
