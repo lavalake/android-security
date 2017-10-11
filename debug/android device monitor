@@ -1,0 +1,7 @@
+alias callback using binder from keychainActivity process
+"Binder:10131_2@5797" prio=5 tid=0x264 nid=NA runnable
+  java.lang.Thread.State: RUNNABLE
+	  at com.samsung.keystoretest.testcases.CustomTest2.alias(CustomTest2.java:89)
+	  at android.security.KeyChain$AliasResponse.alias(KeyChain.java:444)
+	  at android.security.IKeyChainAliasCallback$Stub.onTransact(IKeyChainAliasCallback.java:55)
+	  at android.os.Binder.execTransact(Binder.java:682)
