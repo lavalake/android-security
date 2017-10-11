@@ -1,0 +1,3 @@
+http://www.jianshu.com/p/bc40fa3b01ac
+local service running in the same process with activity, so no need IPC. the onBind just return the Ibinder and client do not need
+to convert it to proxy. It just use the Ibinder.
