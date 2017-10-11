@@ -1,0 +1,10 @@
+http://blog.csdn.net/scnuxisan225/article/details/49970217
+如果客户端和服务端在同一个进程下，那么asInterface()将返回Stub对象本身，否则返回Stub.Proxy对象。
+
+也就是说asInterface()返回的对象有两种可能（实际上有三种，还有一种是null），Stub和Stub.Proxy。它们有什么区别呢？
+
+如果在同一个进程下的话，那么asInterface()将返回服务端的Stub对象本身，因为此时根本不需要跨进称通信，
+那么直接调用Stub对象的接口就可以了，返回的实现就是服务端的Stub实现，也就是根本没有跨进程通信；
+
+如果不是同一个进程，那么asInterface()返回是Stub.Proxy对象，该对象持有着远程的Binder引用，因为现在需要跨进程通信，
+所以如果调用Stub.Proxy的接口的话，那么它们都将是IPC调用，它会通过调用transact方法去与服务端通信。
