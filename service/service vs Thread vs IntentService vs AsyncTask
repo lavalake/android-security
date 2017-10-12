@@ -1,2 +1,13 @@
 http://www.onsandroid.com/2011/12/difference-between-android.html
 
+Differences
+
+Service class uses the application's main thread, while IntentService creates a worker thread and uses that thread to run 
+  the service.
+IntentService creates a queue that passes one intent at a time to onHandleIntent(). Thus, implementing a multi-thread should
+  be made by extending Service class directly. Service class needs a manual stop using stopSelf(). Meanwhile, IntentService 
+  automatically stops itself when it finishes execution.
+IntentService implements onBind() that returns null. This means that the IntentService can not be bound by default.
+IntentService implements onStartCommand() that sends Intent to queue and to onHandleIntent().
+In brief, there are only two things to do to use IntentService. Firstly, to implement the constructor. And secondly,
+to implement onHandleIntent(). For other callback methods, the super is needed to be called so that it can be tracked properly.
