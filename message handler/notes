@@ -7,3 +7,5 @@ prepareMainLooper: create main thread looper
 prepare: create MessageQueue
 Looper(Nativ): create a pipe. the thread will pending on reading end and other thread will post through writeing end
 ThreadLocal: save the looper for this thread
+MainLooper: MainLooper is the looper for main thread. Save the looper to this static member is for other thread to use this looper 
+            to send message to main thread. Only main thread can update UI.
