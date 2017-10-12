@@ -1,4 +1,4 @@
 http://www.jianshu.com/p/bc40fa3b01ac
-local service running in the same process with activity, so no need IPC. the onBind just return the Ibinder and client do not need
+local service running in the same process with activity and the main thread, so no need IPC. the onBind just return the Ibinder and client do not need
 to convert it to proxy. It just use the Ibinder.
 https://www.dre.vanderbilt.edu/~schmidt/cs282/PDFs/8-Services-and-IPC-parts-10-11-12-and-13.pdf
