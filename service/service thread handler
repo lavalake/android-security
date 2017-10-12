@@ -1,0 +1,2 @@
+create new thread in service, the thread can not update ui directly. Need use a main thread handler to update the UI.
+How about IntentService?
