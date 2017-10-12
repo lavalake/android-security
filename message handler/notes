@@ -4,3 +4,4 @@ Handler: send and process message
 HandlerThread
 prepareMainLooper: create main thread looper
 prepare: create MessageQueue
+Looper(Nativ): create a pipe. the thread will pending on reading end and other thread will post through writeing end
