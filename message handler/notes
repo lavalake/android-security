@@ -2,5 +2,5 @@ MessageQueue: describe the message queue
 Looper: create the message queue
 Handler: send and process message
 HandlerThread
-prepareMainLooper
-prepare
+prepareMainLooper: create main thread looper
+prepare: create MessageQueue
