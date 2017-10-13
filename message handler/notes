@@ -1,6 +1,8 @@
 MessageQueue: describe the message queue
 Looper: create the message queue
 Handler: send and process message
+         The most important thing to remember is sendMessage() can be called in any threads but the handler code 
+         (i.e handleMessage()) will always be running in the Thread which the Handler's Looper resides in.
 HandlerThread
 Messageer
 prepareMainLooper: create main thread looper
