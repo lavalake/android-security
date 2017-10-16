@@ -1,3 +1,4 @@
 Prefer Using Active Objects Instead of Naked Threads
 http://www.drdobbs.com/parallel/prefer-using-active-objects-instead-of-n/225700095
 https://github.com/zezutom/concurrency-patterns/tree/master/active-object
+AsyncQueryHandler
