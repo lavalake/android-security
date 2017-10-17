@@ -1,0 +1,4 @@
+java static variable and process
+No. The static variable is specific to the JVM instance. More than that, in fact - it's specific to the class loader which 
+loads the class. So if you created three separate class loaders, each responsible for loading MyClass 
+(not just delegating to some common parent) they'd each have a separate, independent static variable in MyClass
