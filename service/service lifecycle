@@ -3,3 +3,6 @@ the service component can be active while background thread runs and be destroye
 
 but Activity and BroadcastReceiver decouple with background thread. So if Activity destroyed, the thread is still running.
 If Activity want to offload some work, just start a Service, in Service, start a thread.
+
+onStartCommand: should spawn a thread. This will not block the UI thread and can enable concurrent execution of multiple start requests.
+
