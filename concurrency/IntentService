@@ -1,0 +1,3 @@
+The background task executor in IntentSerive is a HandlerThread.
+Unlike AsyncTask, the IntentService executor is per instance not per process. So an APP can have multiple IntentService instance
+and run independently.
