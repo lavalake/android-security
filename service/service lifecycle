@@ -5,4 +5,12 @@ but Activity and BroadcastReceiver decouple with background thread. So if Activi
 If Activity want to offload some work, just start a Service, in Service, start a thread.
 
 onStartCommand: should spawn a thread. This will not block the UI thread and can enable concurrent execution of multiple start requests.
+                tasks should be offloaded to a executor.
+                Start ID: unique ID for start request. If process is terminated and restarted, the onStartCommand is called with the same start ID.
+                Delivery Method: use this flag to tell runtime how to restart your service after the process is terminated. Runtime can send you
+                                 the Intent again after the service restarted to continue your last start request.
 
+If Service destoryed, the thread may still running and have a reference to the outer Service instance. So It's better to let Service
+stay alive as long as needed.
+In the spwaned thread pool, when the task finish, check whether there is any task running. If all task finished, just call the stopSelf()
+to stop the service.
