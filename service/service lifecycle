@@ -1,0 +1,4 @@
+service couple the component and thread life cycle.
+the service component can be active while background thread runs and be destroyed when it finisheds.
+
+but Activity and BroadcastReceiver decouple with background thread. So if Activity destroyed, the thread is still running.
