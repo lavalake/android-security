@@ -1,0 +1,8 @@
+ActivityThread.runOnUIThread
+A Handler allows you to post messages to be executed on the main UI thread. Activity#runOnUiThread(Runnable) is a convenience 
+method that uses a Handler internally to post a Runnable
+
+An AsyncTask is a utility class that uses a thread pool to execute tasks and provides helpful callback methods 
+(i.e. onPreExecute, onPostExecute, etc.) that are guaranteed to be executed on the main UI thread (in other words, 
+it abstracts the idea of Handlers from the developer).
+
