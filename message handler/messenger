@@ -4,3 +4,6 @@ handler is used to communicate between different thread in same process.
 messenger combines Binder and handler to communicate between different thread in different process.
 In server side, it start a thread and init the messenger with the handler. And pass a Ibinder to client side.
 In client side, use the Ibinder to send command to server messenger and server messenger will use the handler to send message to thread.
+
+Messenger can be used for two way communication.
+When send a message to server, create a Messenger with local handler to msg.reply_to
