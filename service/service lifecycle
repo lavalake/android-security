@@ -1,3 +1,9 @@
+service help rasse the application process rank. If useing Activity, when the Activity is invisible, the application is likely be
+killed by system. But Service will not.
+Moving asynchronous execution to a Service, you can achieve several advantages:
+1. background task execute independently of the application visibility.
+2. the asynchronous execution can easily shared between mulitpoe clients.
+3. 
 service couple the component and thread life cycle.
 the service component can be active while background thread runs and be destroyed when it finisheds.
 
