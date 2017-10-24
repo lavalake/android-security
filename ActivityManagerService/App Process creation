@@ -1,2 +1,8 @@
 ZygoteInit.main()
   zygoteInit.runSelectLoopMode()
+    receive new request and fork APP process
+      RuntimeInit.invokeStaticMain()
+        throw MethodAndArgsCaller exeption
+          zygoteInit.main() capture the exeption and call run to invoke the ActivityThread.main()
+          This will clear the call stack of the zygote process and make it looks like the entry point is ActivityThread.main()
+ 
