@@ -5,4 +5,22 @@ ZygoteInit.main()
         throw MethodAndArgsCaller exeption
           zygoteInit.main() capture the exeption and call run to invoke the ActivityThread.main()
           This will clear the call stack of the zygote process and make it looks like the entry point is ActivityThread.main()
- 
+          
+          
+          
+Activity Creation
+  ActivityThread.main()
+    new ActivityThread
+    thread.attach()
+      new ApplicationThread
+      ActivityManagerService.attachApplication(ApplicationThread)
+        ActivityStack.realStackActivityLocked()
+          app.thread.scheduleLaunchActivity() ->  this is the ApplicationThread method
+          ActivityThread.handleLaunchActivity()
+            performLuanchActivity()
+              use classLoader to creat activity
+              new Application
+              new ContextImpl appContext
+              appContext.init()
+              appContext.setOuterContext(activity)
+              activity.attach(appContext)
