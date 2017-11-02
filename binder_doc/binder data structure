@@ -7,6 +7,9 @@ When the service register to ServiceManager, the Binder Driver will create binde
 when Client get service using ServiceManager, Binder Driver will create binder ref for this client. and use BR_INCREFS and
 BR_AQUIRE to add the reference of the binder node.
 
+getStrongProxyForHandle: generate BpBinder with handle
 writeStrongBinder:
 flaten_binder
 getContextObject(): 
+BinderInternal
+JavaBBinder
