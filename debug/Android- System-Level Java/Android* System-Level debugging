@@ -1,0 +1,711 @@
+https://software.intel.com/en-us/articles/android-system-level-javac-code-debugging
+
+Jump to navigation
+Developer Zone
+English
+Sign in
+Support
+
+Search our content library...
+
+Menu
+Documentation
+ Share
+Android* System-Level Java*/C++ Code Debugging
+
+Updated August 6, 2012  
+Translate
+
+1 Introduction
+
+Currently, the Android* SDK allows application developers to create Android application projects, build them, and debug them using Eclipse*. But it doesn’t provide a facility to debug the system-level Java*/C++ code, which is in the Android code base and cannot be built and debugged using the Android SDK. This document describes how to use Eclipse to debug Android system-level Java/C++ code.
+
+2 Installation
+
+2.1 Install JDK
+
+Download the JDK6 (Java SE 6 Update package) from: http://java.sun.com/javase/downloads/index.jsp
+The current JDK6 version is named jdk-6u32-linux-x64.bin. Let’s use it in an example.
+
+Install it and use the default JDK.
+
+$ cd /usr/lib/jvm
+$ sudo /path/to/jdk-6u32-linux-x64.bin
+$ sudo ln -s jdk1.6.0_32 java-6-sun
+$ export PATH=/usr/lib/jvm/java-6-sun/bin:$PATH
+$ export JAVA_HOME=/usr/lib/jvm/java-6-sun
+ 
+
+2.2 Install Eclipse
+
+Download Eclipse 3.6.2 or greater from: http://www.eclipse.org/downloads/
+Currently Eclipse Classic version is 3.7.2 (Indigo), and let’s use it in an example.
+
+$ mkdir ~/android-sdk
+$ cd ~/android-sdk
+$ tar zxf /path/to/eclipse-SDK-3.7.2-linux-gtk-x86_64.tar.gz
+ 
+
+2.3 Install Eclipse CDT plugins
+
+To create C/C++ project and debug the C++ code, we need to install CDT plugins.
+Launch Eclipse.
+
+$ cd ~/android-sdk/eclipse/
+$ ./eclipse
+ 
+
+Set up the proxy if you are behind the firewall: Window->Preferences->General->Network Connection as shown in Figure 1 or just “(Figure 1)”.
+
+
+Figure 1. Eclipse proxy settings
+
+Download the latest Eclipse plugin list by clicking Help->Check for updates.
+Enter Window->Preferences->Install/Update->Available Software Sites and enable
+
+http://download.eclipse.org/sequoyah/updates/2.0/
+ 
+
+
+Figure 2. Eclipse software update
+
+And then install the CDT plugins: enter Help->Install New Software.
+Select “http://download.eclipse.org/sequoyah/updates/2.0/” and uncheck “Group items by category” box and then select all the plugins and install them.
+
+
+
+Figure 3. Install Sequoyah plugins
+
+ 
+
+2.4 Install Android SDK
+
+Download the Android SDK from: http://developer.android.com/sdk/index.html  Currently the Android SDK is r18, and let’s use it in an example.
+Install it:
+
+$ cd ~/android-sdk/
+$ tar zxf /path/to/android-sdk_r18-linux.tgz
+Launch the Android package manager to download the Android SDK packages:
+
+$ cd ~/android-sdk/android-sdk-linux/tools/
+$ ./android
+Set up the proxy and check “Force https://...sources to be fetched using http://.”
+
+
+
+Figure 4. Android SDK Manager proxy settings
+
+Then download the packages you are interested in (Tools package is mandatory).
+
+
+
+Figure 5. Install Android SDK updates
+
+2.5 Install Android ADT plugin
+
+Install Android ADT (Android Development Tool).
+Launch Eclipse.
+
+$ cd ~/android-sdk/eclipse/
+$ ./eclipse
+ 
+
+Click Help->Install New Software and then click “Add Repository” button.
+In the Add Repository dialog that appears, enter "ADT Plugin" for the Name and the following URL for the Location: 
+
+https://dl-ssl.google.com/android/eclipse/
+
+
+Figure 6. Install ADT plugins
+
+ 
+
+Install all the ADT plugins by following the steps.
+Then enter Window->Preference->Android and input the Android SDK path in the Box labeled “SDK location.”
+
+
+
+Figure 7. Android SDK settings
+
+ 
+
+2.6 Install Android System Debug Utility
+
+Save the following package and uncompress it on your Linux* host.
+
+
+
+$ cd ~/android-sdk
+$ tar zxf android-debug-utility.tar.gz
+
+3 Debug Android System Java Code
+
+3.1 Debug system_process
+
+ 
+
+The process system_process is the so-called Android system server. It is forked by zygote when the system boots up. Now we will see how to use Eclipse to debug it.
+
+3.1.1 Create a pseudo Android project for system_process
+
+ 
+
+Dalvik Debug Monitor Server (DDMS) is only able to debug code in an Android project. The system_process is built from the Android code base instead of being built from the Android project. To use Eclipse/DDMS to debug it, we need to create a pseudo Android project for it.
+Enter File->New->Project, and choose “Android project.”
+
+ 
+
+
+Figure 8. create an Android project
+
+ 
+
+
+Figure 9. android package name
+
+ 
+
+Click “AndroidManifest.xml” and modify the package name to be “system_process.”
+
+              
+Figure 10. revised android package name
+
+3.1.2 Debug system_process using DDMS
+
+ 
+
+Go to DDMS view and select system_process and then click the debug button.
+
+ 
+
+
+Figure 11. Android DDMS view
+
+Go to the debug view and select any thread you want to debug and click the suspend button.
+
+ 
+
+
+Figure 12. Android debug view
+
+To do the Java source code level debugging, we need to specify where the Android source is. Click “Edit Source lookup Path” button, then click “Add” button, and then select “File System Directory.” The frameworks/base and libcore are two major directories that contain the Android Java code.
+
+Select the Android frameworks/base.
+
+
+Figure 13. Set framework base source path
+
+We also need to add the libcore directory.
+
+ 
+
+
+Figure 14. set libcore source path
+
+Now you will see the Java code displayed in the editor window.
+
+ 
+
+Figure 15. Android project debugger
+
+We can now set breakpoints and debug the Android system-level Java code.
+
+3.2 Debug Android built-in application
+
+There are many Android built-in applications, or so-called system applications, such as Calendar, Settings, Gallery, etc. Those projects are in the Android code base and built with system.img. To debug them?, we also need to create pseudo projects for them, just like the system_process. Instead of entering “system_process,” you need to change the package name to the application name.
+
+ 
+
+
+Figure 16. Android application package name
+
+Then go to DDMS and select the process “com.android.calendar” and click the debug button.
+
+ 
+
+
+Figure 17. Choose an application to debug
+
+ 
+
+
+Figure 18. Android application debugger
+
+ 
+
+4 Debug Android System C/C++ Code
+
+4.1 Debug the system_process
+
+Usually we can use gdbserver/gdb to debug the Android native C/C++ code. That is, use gdbserver to attach to the running process and then use gdb to debug it remotely. But the system_ process is created by zygote when the system boots up, and the initialization has been done before we have chance to attach to it. To debug the system_process from the beginning, we will use android-debug-utility to force the system_process to enter an endless loop from the beginning so that we have a chance to attach to it at the very early stage. After that, we will put the system_process exit the endless loop and continue to run.
+
+4.1.1 Create a C/C++ project
+
+We can create a new C/C++ project. We can also just convert the existing Android project “system_process” to a C/C++ project. Click File->New->Convert to a C/C++ Project (Adds C/C++ Nature), select the system_process project:
+
+ 
+
+
+Figure 19. Convert android project to C/C++ project
+
+ 
+
+4.1.2  Create a debug configuration
+
+Go to Debug view, click the debug button->Debug Configurations, create a C/C++ Remote application debug configuration, input the path of app_process binary, and disable auto build.
+
+ 
+
+
+Figure 20. Set the application image to debug
+
+ 
+
+Go to the directory of android-debug-utility, edit the gdb initialization script sdk_x86_gdb.setup, replace $android and $__board with your Android root directory and device name, In order to tell gdb the correct symbol file directories:
+
+shell echo set solib-absolute-prefix $android/out/target/product/$__board/symbols > 
+tmp.gdb
+shell              echo                   set                     solib-search-path 
+$android/out/target/product/$__board/symbols/system/lib:$android/out/target/product/$
+__board/symbols/system/lib/hw:$android/out/target/product/$__board/symbols/system/li
+b/egl:$android/out/target/product/$__board/symbols/system/lib/soundfx:$android/out/tar
+get/product/$__board/symbols/system/lib/bluez-plugin:$android/out/target/product/$__b
+oard/symbols/system/vendor/lib/egl:$android/out/target/product/$__board/symbols/syste
+m/vendor/lib/hw:$android/out/target/product/$__board/symbols/system/vendor/lib:$andr
+oid/out/target/product/$__board/symbols/system/lib/parameter-framework-plugins/Audio:
+$android/out/target/product/$__board/symbols/system/lib/soundfx:$android/out/target/p
+roduct/$__board/symbols/system/usr/lib/alsa-lib >> tmp.gdb 
+source tmp.gdb
+Or just export two environment variables before launching Eclipse:
+
+$ export android=<android root directory>
+$ export __board=<devicename>
+
+Click the Debugger tab, and input the path of sdk_x86_gdb.setup:
+
+
+Figure 21. set gdb initial script
+
+Click the Connection tab and change the port number to 1234.
+
+ 
+
+
+Figure 22. set gdb debug port
+
+4.1.3 Debug the system_process
+
+Boot up the Android device and connect the USB cable from the host to it. Restart the system_process and use the gdbserver to attach to it:
+
+$ cd ~/android-sdk/android-debug-utility/target
+$ ./start_system_server.sh
+zygote:115
+killall: gdbserver: no process killed
+killall: gdb: no process killed
+/lib/gdbserver: No such file or directory
+mkdir failed for /lib, File exists
+push: ./lib/ld-linux.so.2 -> /lib/ld-linux.so.2
+push: ./lib/system_server -> /lib/system_server
+push: ./lib/libthread_db.so.1 -> /lib/libthread_db.so.1
+push: ./lib/libpthread.so.0 -> /lib/libpthread.so.0
+push: ./lib/libc.so.6 -> /lib/libc.so.6
+push: ./lib/libreadline.so.5.2 -> /lib/libreadline.so.5.2
+push: ./lib/libreadline.so.6 -> /lib/libreadline.so.6
+push: ./lib/gdb -> /lib/gdb
+push: ./lib/libdl.so.2 -> /lib/libdl.so.2
+push: ./lib/app -> /lib/app
+push: ./lib/libz.so.1 -> /lib/libz.so.1
+push: ./lib/libm.so.6 -> /lib/libm.so.6
+push: ./lib/libutil.so.1 -> /lib/libutil.so.1
+push: ./lib/libexpat.so.1 -> /lib/libexpat.so.1
+push: ./lib/libpython2.6.so.1.0 -> /lib/libpython2.6.so.1.0
+push: ./lib/libcrypto.so.0.9.8 -> /lib/libcrypto.so.0.9.8
+push: ./lib/service -> /lib/service
+push: ./lib/libssl.so.0.9.8 -> /lib/libssl.so.0.9.8
+push: ./lib/gdbserver -> /lib/gdbserver
+push: ./lib/libncurses.so.5 -> /lib/libncurses.so.5
+20 files pushed. 0 files skipped.
+1770 KB/s (10526293 bytes in 5.805s)
+4 KB/s (440 bytes in 0.099s)
+
+please connect to the system server via gdb remote
+
+Attached; pid = 309
+
+Listening on port 1234
+
+ 
+
+Forward the local TCP port 1234 to the Android device using adb:
+
+$ adb forward tcp:1234 tcp:1234
+
+ 
+
+Using the Eclipse tool, go to the Debug view:
+
+Debug button->Debug Configurations, select the configuration “system_process_1234”, and then click the “Debug” button.
+
+ 
+
+
+Figure 23. launch C/C++ debugger
+
+Wait until the gdb connects to the gdbserver:
+
+ 
+
+
+Figure 24. system_server C/C++ debugger
+
+Suspend the task, go to Console and input the commands “thread 1” and “go,” which will take the task out of the endless loop.
+
+thread 1
+[Switching to thread 1 (Thread 309)]
+#0  setgid () at bionic/libc/arch-x86/syscalls/setgid.S:10
+10      pushl   %ebx
+go
+system server in dead loop, trying to restore...done
+
+Set the breakpoints and then debug the code.
+
+4.2 Debug the Android application
+
+Like the system_process, the Android application is also forked by zygote. We cannot launch it like we can a normal C/C++ program with the main function. To debug an Android application, we must put it into an endless loop at the beginning, the same as we did with the system_process, so we can attach the gdbserver to it at a very early stage. Then, we also need to create a C/C++ project and debug configuration for it. For convenience, we just re-use the C/C++ project system_process and debug configuration system_process_1234.
+
+4.2.1 Debug the Android application
+
+Boot up the Android device and connect the USB cable from the host to it. Execute the following script “start_app.sh”:
+
+$ cd ~/android-sdk/android-debug-utility/target
+$ ./start_app.sh
+zygote:305
+killall: gdbserver: no process killed
+please launch the app
+
+Launch the Android application from the Android launcher or run an Android application from Eclipse. A message will be displayed telling us we can connect to the application.
+
+$ ./start_app.sh
+zygote:305
+killall: gdbserver: no process killed
+please launch the app
+please connect to the app 1362 via gdb remote
+Attached; pid = 1362
+Listening on port 1234
+
+Using Eclipse, go to the Debug view.
+
+Debug button->Debug Configurations, select the configuration “system_process_1234”, and then click the “Debug” button.
+
+ 
+
+Figure 25. launch the C/C++ debugger
+
+Wait until the gdb connects the gdbserver.
+
+ 
+
+
+Figure 26. Android application C/C++ debugger
+
+ 
+
+Suspend the task, go to Console, and input the commands “thread 1” and “go”:
+
+[New Thread 1374]
+[Switching to Thread 1362]
+thread 1
+[Switching to thread 1 (Thread 1362)]
+#0  0xb75cb343 in android::IPCThreadState::clearCallingIdentity (this=0x983d580) at frameworks/base/libs/binder/IPCThreadState.cpp:375
+375 {
+go
+android app in dead loop, trying to restore...done
+
+Set the breakpoints and then debug the code.
+
+4.3 Debug the Android services
+
+In the Android initialization script, init.rc, the following native services are launched when the system boots up:
+
+service mtpd /system/bin/mtpd
+    class main
+    socket mtpd stream 600 system system
+    user vpn
+    group vpn net_admin inet net_raw
+    disabled
+    oneshot
+
+service keystore /system/bin/keystore /data/misc/keystore
+    class main
+    user keystore
+    group keystore
+    socket keystore stream 666
+
+Those services are usually written in C/C++, and their entry is main(). But those services are launched by the init process, and their behavior could be different if we run it manually. To debug them, we use the script start_service.sh. We also need to create C/C++ projects and C/C++ debug configurations for them. For convenience, we just re-use the existing system_process project and debug configuration.
+
+4.3.1 Debug the Android services
+
+Usage: start_service.sh [ service name ]
+
+On the host type:
+
+$ cd ~/android-sdk/android-debug-utility/target
+$ ./start_service.sh mtpd
+init:1
+killall: gdbserver: no process killed
+killall: gdb: no process killed
+5 KB/s (585 bytes in 0.099s)
+please start the service: start mtpd
+
+On the target type:
+
+# start mtpd
+
+Then you will see a message on the host telling you that you can debug that service now.
+
+user@ubuntu:~/android-sdk/android-debug-utility/target$ ./start_service.sh mtpd
+init:1
+killall: gdbserver: no process killed
+killall: gdb: no process killed
+5 KB/s (585 bytes in 0.099s)
+please start the service: start mtpd
+please connect to the app 1561 via gdb remote
+
+Unlike other Android Java applications, the services are stand-alone C/C++ applications anddon’t share the same image app_process as zygote, so we need to modify the debug configuration to specify where the service’s binary is.
+
+ 
+
+
+Figure 27. Set android service binary to debug
+
+Then we launch the debugger with the configuration system_process_1234 and wait until the debugger connects to the gdbserver.
+
+ 
+
+
+Figure 28. Android service C/C++ debugger
+
+ 
+
+Suspend the task, go to Console, and input the commands “thread 1” and “go.”
+
+thread 1
+[Switching to thread 1 (Thread 1561)]
+#0  0x08049663 in main (argc=1, argv=0xbf9a3d64) at external/mtpd/mtpd.c:155
+155  {
+go
+android service in dead loop, trying to restore...done
+
+Now we can set the breakpoints and debug it.
+
+5 Hybrid Java and C/C++ Debugging
+
+5.1 Observe the call traces from Java to native
+
+Sometimes we want to observe all of the call traces from Java to native. To do that, we need to use both Java and C/C++ debugging techniques introduced above.
+
+Use the script start_system_server.sh or start_app.sh to put the system_process and application in endless loop mode.
+Attach to the system_process or the application using DDMS.
+Take the system_process or application out of the endless loop by entering the “go” command.
+Toggle the C/C++ breakpoint at the native function you are interested in.
+Put the native function into an endless loop by entering the “loop” command.
+Let it run.
+Now go to the Android debugger, stop the threads, and check the call stack of each thread. Identify the one that is calling the native function, the one in an endless loop.
+Then we will combine both the Java call trace and the C/C++ call trace together and see the whole call trace from Java to native.
+In the case below, the call trace is:
+Java: WindowManagerService$Session.add-> SurfaceSession.init()->
+
+C/C++: SurfaceSession_init()->android::SurfaceFlinger::createConnection()
+
+system_process_1234 [C/C++ Remote Application]       
+
+app_process [cores: 0,1]       
+Thread [52] 10969 [core: 1] (Suspended : Container)       
+Thread [51] 10968 [core: 1] (Suspended : Container)       
+Thread [50] 10556 [core: 1] (Suspended : Container)       
+Thread [49] 10547 [core: 1] (Suspended : Container)       
+android::SurfaceFlinger::createConnection() at SurfaceFlinger.cpp:174 0x8643b728        
+android::SurfaceComposerClient::onFirstRef() at SurfaceComposerClient.cpp:170 0x81f248b9       
+android::RefBase::incStrong() at RefBase.cpp:304 0x8051e128       
+sp() at RefBase.h:353 0x808711f3       
+SurfaceSession_init() at android_view_Surface.cpp:109 0x808711f3       
+dvmPlatformInvoke() at Call386ABI.S:133 0x8302be8f       
+dvmCallJNIMethod_virtualNoRef() at Jni.c:1,849 0x8307505b       
+dvmCheckCallJNIMethod_virtualNoRef() at CheckJni.c:158 0x83052741       
+dvmInterpretDbg() at InterpC-portdbg.c:4,354 0x8304083d       
+dvmInterpret() at Interp.c:1,335 0x83036521       
+<...more frames...>      
+<==
+system_process [Android Application]       
+DalvikVM[localhost:8600]       
+Thread [<1> main] (Running)       
+Thread [<50> Binder Thread #10] (Running)       
+Thread [<49> Binder Thread #9] (Running)       
+Thread [<47> Binder Thread #8] (Running)       
+Thread [<44> Binder Thread #7] (Suspended)       
+SurfaceSession.init() line: not available [native method]       
+SurfaceSession.<init>() line: 29       
+WindowManagerService$Session.windowAddedLocked() line: 5774       
+WindowManagerService$WindowState.attach() line: 6107       
+WindowManagerService.addWindow(WindowManagerService$Session, IWindow, WindowManager$LayoutParams, int, Rect, InputChannel) line: 1914       
+WindowManagerService$Session.add(IWindow, WindowManager$LayoutParams, int, Rect, InputChannel) line: 5664       
+WindowManagerService$Session(IWindowSession$Stub).onTransact(int, Parcel, Parcel, int) line: 68       
+WindowManagerService$Session.onTransact(int, Parcel, Parcel, int) line: 5636       
+WindowManagerService$Session(Binder).execTransact(int, int, int, int) line: 320       
+NativeStart.run() line: not available [native method]
+
+5. Observe the IPC call traces
+
+Android’s interprocess communication (IPC) is implemented via a binder. One task calls one function, which could be done by another task and gets the result from the executing task. Sometimes we want to observe the whole call trace across tasks in IPC calling. Fortunately, the binder IPC is synchronous. That means if the callee task has not completed the execution, the caller task will not return. So if we put an endless loop in the callee task, the caller task will be blocked at the IPC call. In this way, we can observe the call traces of both the caller and callee tasks.
+
+To observe both tasks, we need to launch two gdbserver/gdb sessions, one session for each task. You can set up another C/C++ project system_process_2, and another debug configuration with the debugger TCP port 1235.
+
+Use the steps in 5.1 to connect to the first task using the debug configuration system_process_1234.
+Use the same steps to connect to the second task using the debug configuration system_process_1235.
+Note: you need to modify the start_app.sh to specifiy the debugger listen port from 1234 to 1235, and use adb to forward the local port 1235 to the device.
+
+Put the callee task in an endless loop or just set one break point in the function of interest and run it until stopped.
+Observe the call traces of both tasks.
+You now can see all of the call traces from caller task to callee task. If you like, you can also attach to their Java debugger, so that you will also see the Java traces in all of the IPC call traces.
+
+ 
+
+About the Author:
+
+ 
+
+Currently Jack Ren is a Android architect with the Intel Android Engineering team, Mobile Computing Group (MCG). He has eight years of Linux development experience, from the Linux kernel to the Android software stack. Jack is the founder of the MCG Android Shanghai team and its first manager. He has witnessed tremendous growth in MCG Android software development—from nothing two years ago to the real product it is today. Now he is focusing on the Android technical areas, such as LLVM, Dalvik, and UX, and upstreaming the Intel patches to Google. He is one of the key contributors on the Intel MCG/PSI Android development team.
+
+ 
+
+ 
+
+Notices
+
+INFORMATION IN THIS DOCUMENT IS PROVIDED IN CONNECTION WITH INTEL PRODUCTS. NO LICENSE, EXPRESS OR IMPLIED, BY ESTOPPEL OR OTHERWISE, TO ANY INTELLECTUAL PROPERTY RIGHTS IS GRANTED BY THIS DOCUMENT. EXCEPT AS PROVIDED IN INTEL'S TERMS AND CONDITIONS OF SALE FOR SUCH PRODUCTS, INTEL ASSUMES NO LIABILITY WHATSOEVER AND INTEL DISCLAIMS ANY EXPRESS OR IMPLIED WARRANTY, RELATING TO SALE AND/OR USE OF INTEL PRODUCTS INCLUDING LIABILITY OR WARRANTIES RELATING TO FITNESS FOR A PARTICULAR PURPOSE, MERCHANTABILITY, OR INFRINGEMENT OF ANY PATENT, COPYRIGHT OR OTHER INTELLECTUAL PROPERTY RIGHT.
+
+UNLESS OTHERWISE AGREED IN WRITING BY INTEL, THE INTEL PRODUCTS ARE NOT DESIGNED NOR INTENDED FOR ANY APPLICATION IN WHICH THE FAILURE OF THE INTEL PRODUCT COULD CREATE A SITUATION WHERE PERSONAL INJURY OR DEATH MAY OCCUR.
+
+Intel may make changes to specifications and product descriptions at any time, without notice. Designers must not rely on the absence or characteristics of any features or instructions marked "reserved" or "undefined." Intel reserves these for future definition and shall have no responsibility whatsoever for conflicts or incompatibilities arising from future changes to them. The information here is subject to change without notice. Do not finalize a design with this information.
+
+The products described in this document may contain design defects or errors known as errata which may cause the product to deviate from published specifications. Current characterized errata are available on request.
+
+Contact your local Intel sales office or your distributor to obtain the latest specifications and before placing your product order.
+
+Copies of documents which have an order number and are referenced in this document, or other Intel literature, may be obtained by calling 1-800-548-4725, or go to: http://www.intel.com/design/literature.htm
+
+Software and workloads used in performance tests may have been optimized for performance only on Intel microprocessors. Performance tests, such as SYSmark and MobileMark, are measured using specific computer systems, components, software, operations, and functions. Any change to any of those factors may cause the results to vary. You should consult other information and performance tests to assist you in fully evaluating your contemplated purchases, including the performance of that product when combined with other products.
+
+Any software source code reprinted in this document is furnished under a software license and may only be used or copied in accordance with the terms of that license.
+
+Intel, Core, VTune, and the Intel logo are trademarks of Intel Corporation in the US and/or other countries.
+
+Copyright © 2012 Intel Corporation. All rights reserved.
+
+*Other names and brands may be claimed as the property of others.
+
+ 
+
+ 
+
+For more complete information about compiler optimizations, see our Optimization Notice.
+14 commentsTop
+Tri Pham said on Dec 13,2013
+Tri Pham's picture
+Hi!
+
+It doesn't work on Ubuntu 12.10 64-bit with ndk-r9 and emulator x86 built from Jelly bean 4.1.1 source.
+
+It seems that line 24 in start_system_server.sh script: "adb shell "/lib/gdb /init -p 1 -x /lib/system_server" 2>&1 > /dev/null" is failed.
+
+When I ran the command "/lib/gdb /init -p 1 -x /lib/system_server" in the emulator shell, it returned strange error: "text busy". Could you please check it?
+
+Thanks for your support!
+
+Best Regards
+
+Marco R. said on Dec 10,2013
+Marco R.'s picture
+Hi!
+
+i'm trying to download android-debug-utility.tar.gz, at http://software.intel.com/sites/default/files/m/d/4/1/d/8/android-debug-utility.tar.gz but i get Page Not Found!
+
+Thanks for your support!
+
+Best Regards
+
+王开荣 said on Jul 9,2013
+王开荣's picture
+good
+
+JINKUI R. (Intel) said on Dec 13,2012
+JINKUI R. (Intel)'s picture
+Hi Paul, I can use it on ubuntu 10.04 64bit. What is your gdb version?
+Mine:
+$gdb --version
+GNU gdb (GDB) 7.1-ubuntu
+Copyright (C) 2010 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law. Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "x86_64-linux-gnu".
+For bug reporting instructions, please see:
+.
+
+Paul Q. said on Nov 28,2012
+Paul Q.'s picture
+Helpful article, but useless tools.
+I think most Android developers use 64bit OS as I.
+When I try tools in your article on my PC(With Ubuntu 10.04 64bit), my eclipse just cannot get connected with gdbserver, it just tell me "Remote 'g' packet reply is too long ", and "warning: Target-supplied registers are not supported by the current architecture"
+
+Will you please modify 'android-debug-utility' to make it work on Ubuntu 64, PLEASE!!!
+
+Anonymous said on Sep 20,2012
+anonymous's picture
+Thanks a lot for fixing up the figures,its great help.
+
+Anonymous said on Sep 13,2012
+anonymous's picture
+Figures are wrong. Please fix them.
+
+Anonymous said on Sep 5,2012
+anonymous's picture
+The figures 4-15 are wrong, they belong to some other article. The images do not match their headings.
+
+Anonymous said on Sep 5,2012
+anonymous's picture
+Figures from 4 to 14 are probably from some other document...
+
+jason_leatherface said on Jul 17,2012
+jason_leatherface's picture
+Arrrggh! Seriously?!`
+
+Pages
+1 Next ›
+Add a Comment
+Sign in
+Have a technical question? Visit our forums. Have site or software product issues? Contact support.
+Hardware Developers
+Resource and Design Center
+Shop Intel
+Firmware
+Open Source
+01.org
+Clear Linux* Project
+Zephyr Project
+Manage Your Tools
+Download Center
+Online Service Center
+Registration Center
+Stay Up-to-Date
+Forums
+Recent Updates
+Subscribe to our YouTube Channel
+Newsletter Archives
+Rate Us 
+Get the Newsletter
+Follow us:
+Facebook Twitter Github Twitch YouTube
+Terms of Use  *Trademarks  Privacy  Cookies
+
