@@ -1,0 +1,10 @@
+binder_node
+binder_ref: driver will create a handle for every binder_ref.
+BnBinder
+BpBinder: pass handle to driver for the binder_ref
+
+When the service register to ServiceManager, the Binder Driver will create binder node for this service
+when Client get service using ServiceManager, Binder Driver will create binder ref for this client. and use BR_INCREFS and
+BR_AQUIRE to add the reference of the binder node.
+
+
