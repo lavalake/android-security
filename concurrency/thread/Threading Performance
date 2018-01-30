@@ -1,0 +1,4 @@
+https://developer.android.com/topic/performance/threads.html
+Persisting threads
+Threads persist past the lifetime of the activities that spawn them. Threads continue to execute, uninterrupted, 
+regardless of the creation or destruction of activities. In some cases, this persistence is desirable.
