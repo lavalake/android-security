@@ -1,4 +1,4 @@
-AsyncTask use a static THREAD_POOL_EXECUTOR to execute the task.
+1. AsyncTask use a static THREAD_POOL_EXECUTOR to execute the task.
 So all the task in the process will use the same executor no matter how many AsyncTask created. If serial executor used, that means
 all task will execute one by one.
 
@@ -16,3 +16,6 @@ all task will execute one by one.
         THREAD_POOL_EXECUTOR = threadPoolExecutor;
     }
     
+2. risk of memory leak
+    use static inner class for AsyncTask. Otherwise it will have a reference of the outer object.
+    Or use WeakReference.
