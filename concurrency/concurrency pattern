@@ -1,0 +1,13 @@
+o	Active Object 
+o	Monitor Object 
+o	Half-Sync/Half-Async 
+o	Leader/Followers 
+o	Thread-Specific Storage
+
+
+ Synchronization Patterns
+
+o	Scoped Locking 
+o	Strategized Locking 
+o	Thread-Safe Interface 
+o	Double-Checked Locking Optimization
