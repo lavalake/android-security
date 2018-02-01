@@ -1,4 +1,5 @@
-Lock Objects
+1.Lock Objects
+  All implicit monitors implement the reentrant characteristics.
 Executors
 Executor Interfaces
 Thread Pools
