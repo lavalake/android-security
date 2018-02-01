@@ -1,5 +1,7 @@
 1.Lock Objects
   All implicit monitors implement the reentrant characteristics.
+  A lock is acquired via lock() and released via unlock(). 
+  It's important to wrap your code into a try/finally block to ensure unlocking in case of exceptions
 Executors
 Executor Interfaces
 Thread Pools
