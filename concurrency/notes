@@ -3,6 +3,7 @@
   A lock is acquired via lock() and released via unlock(). 
   It's important to wrap your code into a try/finally block to ensure unlocking in case of exceptions
 2.Condition
+  ArrayBlockingQueue and LinkedBlockingQueue use two Re
 Executors
 Executor Interfaces
 Thread Pools
