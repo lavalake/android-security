@@ -1,1 +1,3 @@
-ReentrantLock, ReentrantReadWriteLock.ReadLock, ReentrantReadWriteLock.WriteLock
+ReentrantLock, 
+  The lock is associated with an acquisition count
+ReentrantReadWriteLock.ReadLock, ReentrantReadWriteLock.WriteLock
