@@ -1,3 +1,8 @@
 ReentrantLock, 
   The lock is associated with an acquisition count
+  ReentrantLock when you need timed or interruptible lock waits, non-block-structured locks 
+  (obtain a lock in one method; return the lock in another), multiple condition variables, 
+  or lock polling. Furthermore, ReentrantLock supports scalability and is useful where there 
+  is high contention among threads. If none of these factors come into play, use synchronized
+  
 ReentrantReadWriteLock.ReadLock, ReentrantReadWriteLock.WriteLock
