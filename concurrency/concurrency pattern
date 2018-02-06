@@ -14,4 +14,28 @@ o	Double-Checked Locking Optimization
 
 
 Atomic
+  Java 5 introduced a synchronization alternative that offers mutual exclusion combined with the performance of volatile. 
+  This atomic variable alternative is based on a microprocessor's compare-and-swap instruction and largely consists of 
+  the types in the java.util.concurrent.atomic package
+  
+   Listing 4. Counter.java (version 1)
+
+    public class Counter 
+    {
+       private int value;
+
+       public synchronized int getValue() 
+       { 
+          return value; 
+       }
+
+       public synchronized int increment() 
+       { 
+          return ++value; 
+       }
+    }
+    High contention for the monitor lock will result in excessive context switching that can delay all of the threads 
+    and result in an application that doesn't scale well.
 Volatile
+
+ForkJoinPool
