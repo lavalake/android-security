@@ -1,0 +1,4 @@
+Working with conditions
+
+The classic producer-consumer example nicely demonstrates conditions. In this example, a producer thread repeatedly produces
+items for consumption by a consumer thread
