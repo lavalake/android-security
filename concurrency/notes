@@ -12,4 +12,6 @@ Concurrent Collections
 Atomic Variables
 CAS
 Concurrent Random Numbers
+transient
+intrinsics
 
