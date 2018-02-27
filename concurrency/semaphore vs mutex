@@ -1,1 +1,4 @@
-
+1. Semaphore
+  is used for bounded blocking collections, because Semaphore need a initial count
+2. condition
+  for unbounded collection, use condition
