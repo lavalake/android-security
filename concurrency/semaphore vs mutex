@@ -2,3 +2,7 @@
   is used for bounded blocking collections, because Semaphore need a initial count
 2. condition
   for unbounded collection, use condition
+3. latch vs barrier
+  Barriersaresimilartolatchesinthattheyblockagroupofthreadsuntilsomeeventhasoccurred[CPJ4.4.3].Thekey
+difference is that with a barrier, all the threads must come together at a barrier point at the same time in order to
+proceed.Latchesareforwaitingforevents;barriersareforwaitingforotherthreads.
