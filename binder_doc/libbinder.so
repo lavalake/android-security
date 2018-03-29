@@ -1,0 +1,3 @@
+inder JNI 代码是 Binder Java 层操作到 Binder Native 层的接口封装，最后会被编译进 libandroid_runtime.so 系统库。
+
+Binder 本地层的代码在 frameworks/native/libs/binder 目录下， 此目录在 Android 系统编译后会生成 libbinder.so 文件，供 JNI 调用。libbinder 封装了所有对 binder 驱动的操作，是上层应用与驱动交互的桥梁。头文件则在 frameworks/native/include/binder 目录下。
