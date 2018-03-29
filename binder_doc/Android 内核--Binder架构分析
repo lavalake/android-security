@@ -1,0 +1,2 @@
+http://www.cnblogs.com/a284628487/p/3187320.html
+Binder驱动：任意一个服务端Binder对象被创建时，同时会在Binder驱动中创建一个mRemote对象，该对象的类型也是Binder类。客户端要访问远程服务时，都是通过mRemote对象
