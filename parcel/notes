@@ -1,0 +1,2 @@
+1. similare with java serializable, but serializable write to file and time consuming.
+  so parcel use memroy
