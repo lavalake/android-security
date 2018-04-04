@@ -1,2 +1,6 @@
 1. similare with java serializable, but serializable write to file and time consuming.
   so parcel use memroy
+2. parcel type
+    a. small data, memory copy
+    b. large data, Ashmem
+    c. binder object, binder kernel handle
