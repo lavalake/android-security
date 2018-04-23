@@ -1,0 +1,384 @@
+https://googleprojectzero.blogspot.com/2017/02/lifting-hyper-visor-bypassing-samsungs.html
+
+Project Zero
+News and updates from the Project Zero team at Google
+
+Wednesday, February 8, 2017
+Lifting the (Hyper) Visor: Bypassing Samsung’s Real-Time Kernel Protection
+Posted by Gal Beniamini, Project Zero
+
+ Traditionally, the operating system’s kernel is the last security boundary standing between an attacker and full control over a target system. As such, additional care must be taken in order to ensure the integrity of the kernel. First, when a system boots, the integrity of its key components, including that of the operating system’s kernel, must be verified. This is achieved on Android by the verified boot chain. However, simply booting an authenticated kernel is insufficient—what about maintaining the integrity of the kernel while the system is executing?
+
+ Imagine a scenario where an attacker is able to find and exploit a vulnerability in the operating system’s kernel. Using such a vulnerability, the attacker may attempt to subvert the integrity of the kernel itself, either by modifying the contents of its code, or by introducing new attacker-controlled code and running it within the context of the operating system. Even more subtly, the attacker may choose to modify the data structures used by the operating system in order to alter its behaviour (for example, by granting excessive rights to select processes). As the kernel is in charge of managing all memory translations, including its own, there is no mechanism in place preventing an attacker within the same context from doing so.
+
+ However, in keeping with the concept of “defence in depth”, additional layers may be added in order to safeguard the kernel against such would-be attackers. If stacked correctly, these layers may be designed in such a way which either severely limits or simply prevents an attacker from subverting the kernel’s integrity.
+
+ In the Android ecosystem, Samsung provides a security hypervisor which aims to tackle the problem of ensuring the integrity of the kernel during runtime. The hypervisor, dubbed “Real-Time Kernel Protection” (RKP), was introduced as part of Samsung KNOX. In this blog post we’ll take an in-depth look at the inner-working of RKP and present multiple vulnerabilities which allowed attackers to subvert each of RKP’s security mechanisms. We’ll also see how the design of RKP could be fortified in order to prevent future attacks of this nature, making exploitation of RKP much harder.
+
+ As always, all the vulnerabilities in this article have been disclosed to Samsung, and the fixes have been made available in the January SMR.
+
+ I would like to note that in addition to addressing the reported issues, the Samsung KNOX team has been extremely helpful and open to discussion. This dialogue helped ensure that the issues were diagnosed correctly and the root causes identified. Moreover, the KNOX team has reviewed this article in advance, and have provided key insights into future improvements planned for RKP based on this research. 
+
+ I would especially like to thank Tomislav Suchan from the Samsung KNOX team for helping address every single query I had and for providing deep insightful responses. Tomislav’s hard work ensured that all the issues were addressed correctly and fully, leaving no stone unturned.
+HYP 101
+
+ Before we can start exploring the architecture of RKP, we first need a basic understanding of the virtualisation extensions on ARMv8. In the ARMv8 architecture, a new concept of exception levels was introduced. Generally, discrete components run under different exception levels - the more privileged the component, the higher its exception level.
+
+ Screenshot from 2017-01-27 12:45:40.png
+
+ In this blog post we’ll only focus on exception levels within the “Normal World”. Within this context, EL0 represents user-mode processes running on Android, EL1 represents Android’s Linux kernel, and EL2 (also known as “HYP” mode) represents the RKP hypervisor.
+
+ Recall then when user-mode processes (EL0) wish to interact with the operating system’s kernel (EL1), they must do so by issuing “Supervisor Calls” (SVCs), triggering exceptions which are then handled by the kernel. Much in the same way, interactions with the hypervisor (EL2) are performed by issuing “Hypervisor Calls” (HVCs).
+
+ Additionally, the hypervisor may control key operations that are performed within the kernel, by using the “Hypervisor Configuration Register” (HCR). This register governs over the virtualisation features that enable EL2 to interact with code running in EL1. For example, setting certain bits in the HCR will cause the hypervisor to trap specific operations which would normally be handled by EL1, enabling the hypervisor to choose whether to allow or disallow the requested operation. 
+
+ Lastly, the hypervisor is able to implement an additional layer of memory translation, called a “stage 2 translation”. Instead of using the regular model where the operating system’s translation table maps between virtual addresses (VAs) and physical addresses (PAs), the translation process is split in two.
+
+ First, the EL1 translation tables are used in order to map a given VA to an intermediate physical address (IPA) - this is called a “stage 1 translation”. In the process, the access controls present in the translation are also applied, including access permission (AP) bits, execute never (XN) and privileged execute never (PXN).
+
+ Then, the resulting IPA is translated to a PA by performing a “stage 2 translation”. This mapping is performed by using a translation table which is accessible to EL2, and is inaccessible to code running in EL1. By using this 2-stage translation regime, the hypervisor is able to prevent access to certain key regions of physical memory, which may contain sensitive data that should be kept secret from EL1.
+
+ Screenshot from 2017-01-27 15:18:54.png
+Creating a Research Platform
+
+ As we just saw in our “HYP 101” lesson, communicating with EL2 explicitly is done by issuing HVCs. Unlike SVCs which may be freely issued by code running in EL0, HVCs can only be triggered by code running in EL1. Since RKP runs in EL2 and exposes the vast majority of its functionality by means of commands which can be triggered from HVCs, we first need a platform from which we are able to send arbitrary HVCs.
+
+ Fortunately, in a recent blog post, we already covered an exploit that allowed us to elevate privileges into the context of system_server. This means that all that’s left before we can start investigating RKP and interacting with EL2, is to find an additional vulnerability that allows escalation from an already privileged context (such as system_server), to the context of the kernel.
+
+ Luckily, simply surveying the attack surface exposed to such privileged contexts revealed a vast amount of relatively straightforward vulnerabilities, any of which could be used to gain some foothold in EL1. For the purpose of this research, I’ve decided to exploit the most convenient of these: a simple stack overflow in a sysfs entry, which could be used to gain arbitrary control over the stack contents for a kernel thread. Once we have control over the stack’s contents, we can construct a ROP payload that prepares arguments for a function call in the kernel, calls that function, and returns the results back to user-space.
+
+ Untitled Diagram.png
+
+ In order to ease exploitation, we can wrap the entire process of creating a ROP stack which calls a kernel function and returns the results to user-space, into a single function, which we’ll call “execute_in_kernel”. Combined with our shellcode wrapper, which converts normal-looking C code to shellcode that can be injected into system_server, we are now able to freely construct and run code which is able to invoke kernel functions on demand.
+
+ Screenshot from 2017-01-27 16:42:38.png
+
+
+Putting it all together, we can start investigating and interacting with RKP using this robust research platform. The rest of the research detailed in this blog post was conducted on a fully updated Galaxy S7 Edge (SM-G935F, XXS1APG3, Exynos chipset), using this exact framework in order to inject code into system_server using the first exploit, and then run code in the kernel using the second exploit.
+
+ Finally, now that we’ve laid down all the needed foundations, let’s get cracking!
+Mitigation #1 - KASLR
+
+ With the introduction of KNOX v2.6, Samsung devices implement Kernel Address Space Layout Randomisation (KASLR). This security feature introduces a random “offset”, generated each time the device boots, by which the base address of the kernel is shifted. Normally, the kernel is loaded into a fixed physical address, which corresponds to a fixed virtual address in the VAS of the kernel. By introducing KASLR, all the kernel’s memory, including its code, is shifted by this randomised offset (also known as a “slide”).
+
+ While KASLR may be a valid mitigation against remote attackers aiming to exploit the kernel, it is very hard to implement in a robust way against local attackers. In fact, there has been some very interesting recent research on the subject which manages to defeat KASLR without requiring any software bug (e.g., by observing timing differences).
+
+ While those attacks are quite interesting in their own right, it should be noted that bypassing KASLR can often be achieved much more easily. Recall that the entire kernel is shifted by a single “slide” value - this means that leaking any pointer in the kernel which resides at a known offset from the kernel’s base address would allow us to easily calculate the slide’s value.
+
+ The Linux kernel does include mechanisms intended to prevent the leakage of such pointers to user-space. One such mitigation is enforced by ensuring that every time a pointer’s value is written by the kernel, it is printed using a special format specifier: “%pK”. Then, depending on the value of kptr_restrict, the kernel may anonymise the printed pointer. In all Android devices that I’ve encountered, kptr_restrict is configured correctly, indeed ensuring the “%pK” pointers are anonymised.
+
+ Be that as it may, all we need is to find a single pointer which a kernel developer neglected to anonymise. In Samsung’s case, this turned out to be rather amusing… The pm_qos debugfs entry, which is readable by system_server, included the following code snippet responsible for outputting the entry’s contents:
+
+static void pm_qos_debug_show_one(struct seq_file *s, struct pm_qos_object *qos)
+{
+    struct plist_node *p;
+    unsigned long flags;
+
+    spin_lock_irqsave(&pm_qos_lock, flags);
+
+    seq_printf(s, "%s\n", qos->name);
+    seq_printf(s, "   default value: %d\n", qos->constraints->default_value);
+    seq_printf(s, "   target value: %d\n", qos->constraints->target_value);
+    seq_printf(s, "   requests:\n");
+    plist_for_each(p, &qos->constraints->list)
+        seq_printf(s, "      %pk(%s:%d): %d\n",
+                      container_of(p, struct pm_qos_request, node),
+                      (container_of(p, struct pm_qos_request, node))->func,
+                      (container_of(p, struct pm_qos_request, node))->line,
+                      p->prio);
+
+    spin_unlock_irqrestore(&pm_qos_lock, flags);
+}
+
+ Unfortunately, the anonymisation format specifier is case sensitive… Using a lowercase “k”, like the code above, causes the code above to output the pointer without applying the anonymisation offered by “%pK” (perhaps this serves as a good example of how fragile KASLR is). Regardless, this allows us to simply read the contents of pm_qos, and subtract the pointer’s value from it’s known offset from the kernel’s base address, thus giving us the value of the KASLR slide. 
+
+ Mitigation #2 - Loading Arbitrary Kernel Code
+
+ Preventing the allocation of new kernel code is one of the main mitigations enforced by RKP. In addition, RKP aims to protect all existing kernel code against modification. These mitigations are achieved by enforcing the following set of rules:
+
+ All pages, with the exception of the kernel’s code, are marked as “Privileged Execute Never” (PXN)
+Kernel data pages are never marked executable
+Kernel code pages are never marked writable
+All kernel code pages are marked as read-only in the stage 2 translation table
+All memory translation entries (PGDs, PMDs and PTEs) are marked as read-only for EL1
+
+ While these rules appear to be quite robust, how can we be sure that they are being enforced correctly? Admittedly, the rules are laid out nicely in the RKP documentation, but that’s not a strong enough guarantee...
+
+ Instead of exercising trust, let’s start by challenging the first assertion; namely, that with the exception of the kernel’s code, all other pages are marked as PXN. We can check this assertion by looking at the stage 1 translation tables in EL1. ARMv8 supports the use of two translation tables in EL1, TTBR0_EL1 and TTBR1_EL1. TTBR0_EL1 is used to hold the mappings for user-space’s VAS, while TTBR1_EL1 holds the kernel’s global mappings. 
+
+ In order to analyse the contents of the EL1 stage 1 translation table used by the kernel, we’ll need to first locate the physical address of the translation table itself. Once we find the translation table, we can use our execute_in_kernel primitive in order to iteratively execute a “read gadget” in the kernel, allowing us to read out the contents of the translation table.
+
+ There is one tiny snag, though - how will we be able to retrieve the location of the translation table? To do so, we’ll need to find a gadget which allows us to read TTBR1_EL1 without causing any adverse effects in the kernel. 
+
+ Unfortunately, combing over the kernel’s code reveals a depressing fact - it seems as though such gadgets are quite rare. While there are some functions that do read TTBR1_EL1, they also perform additional operations, resulting in unwanted side effects. In contrast, RKP’s code segments seem to be rife with such gadgets - in fact, RKP contains small gadgets to read and write nearly every single control register belonging to EL1.
+
+ Perhaps we could somehow use this fact to our advantage? Digging deeper into the kernel’s code (init/main.c) reveals that rather perplexingly, on Exynos devices (as opposed to Qualcomm-based devices) RKP is bootstrapped by the EL1 kernel. This means that instead of booting EL2 directly from EL3, it seems that EL1 is booted first, and only then performs some operations in order to bootstrap EL2.
+
+ This bootstrapping is achieved by embedding the entire binary containing RKP’s code in the EL1 kernel’s code segment. Then, once the kernel boots, it copies the RKP binary to a predefined physical range and transitions to TrustZone in order to bootstrap and initialise RKP.
+
+ RKP bootstrap.png
+
+ By embedding the RKP binary within the kernel’s text segment, it becomes a part of the memory range executable from EL1. This allows us to leverage all of the gadgets in the embedded RKP binary - making life that much easier.
+
+ Equipped with this new knowledge, we can now create a small program which reads the location of the stage 1 translation table using the gadgets from the RKP binary directly in EL1, and subsequently dumps and parses the table’s contents. Since we are interested in bypassing the code loading mitigations enforced by RKP, we’ll focus on the physical memory ranges containing the Linux kernel. After writing and running this program, we are faced with the following output:
+
+ ...
+[256] L1 table [PXNTable: 0, APTable: 0]
+  [  0] 0x080000000-0x080200000 [PXN: 0, UXN: 1, AP: 0]
+  [  1] 0x080200000-0x080400000 [PXN: 0, UXN: 1, AP: 0]
+  [  2] 0x080400000-0x080600000 [PXN: 0, UXN: 1, AP: 0]
+  [  3] 0x080600000-0x080800000 [PXN: 0, UXN: 1, AP: 0]
+  [  4] 0x080800000-0x080a00000 [PXN: 0, UXN: 1, AP: 0]
+  [  5] 0x080a00000-0x080c00000 [PXN: 0, UXN: 1, AP: 0]
+  [  6] 0x080c00000-0x080e00000 [PXN: 0, UXN: 1, AP: 0]
+  [  7] 0x080e00000-0x081000000 [PXN: 0, UXN: 1, AP: 0]
+  [  8] 0x081000000-0x081200000 [PXN: 0, UXN: 1, AP: 0]
+  [  9] 0x081200000-0x081400000 [PXN: 0, UXN: 1, AP: 0]
+  [ 10] 0x081400000-0x081600000 [PXN: 1, UXN: 1, AP: 0]
+...
+
+ As we can see above, the entire physical memory range [0x80000000, 0x81400000] is mapped in the stage 1 translation table using first level “Section” descriptors, each of which is responsible for translating a 1MB range of memory. We can also see that, as expected, this range is marked UXN and non-PXN - therefore EL1 is allowed to execute memory in these ranges, while EL0 is prohibited from doing so. However, much more surprisingly, the entire range is marked with access permission (AP) bit values of “00”. Let’s consult the ARM VMSA to see what these values indicate:
+
+ Screenshot from 2017-01-28 12:23:15.png
+
+
+Aha - so in fact this means that these memory ranges are also readable and writable from EL1! Combining all this together, we reach the conclusion that the entire physical range of [0x80000000, 0x81400000] is mapped as RWX in the stage 1 translation table.
+
+ This still doesn’t mean we can modify the kernel’s code. Remember, RKP enforces the stage 2 memory translation as well. These memory ranges could well be restricted in the stage 2 translation in order to prevent attackers from gaining write access to them.
+
+ After some reversing, we find that RKP’s initial stage 2 translation table is in fact embedded in the RKP binary itself. This allows us to extract its contents and to analyse it in detail, similar to our previous work on the stage 1 translation table. 
+
+ Screenshot from 2017-01-28 12:34:45.png
+
+ I’ve written a python script which analyses a given binary blob according to the stage 2 translation table’s format specified in the ARM VMSA. Next, we can use this script in order to discover the memory protections enforced by RKP on the kernel’s physical address range:
+
+ ...
+0x80000000-0x80200000: S2AP=11, XN=0
+0x80200000-0x80400000: S2AP=11, XN=0
+0x80400000-0x80600000: S2AP=11, XN=0
+0x80600000-0x80800000: S2AP=11, XN=0
+0x80800000-0x80a00000: S2AP=11, XN=0
+0x80a00000-0x80c00000: S2AP=11, XN=0
+0x80c00000-0x80e00000: S2AP=11, XN=0
+0x80e00000-0x81000000: S2AP=11, XN=0
+0x81000000-0x81200000: S2AP=11, XN=0
+0x81200000-0x81400000: S2AP=11, XN=0
+0x81400000-0x81600000: S2AP=11, XN=0
+...
+
+ First of all, we can see that the stage 2 translation table used by RKP maps every IPA to the same PA. As such, we can safely ignore the existence of IPAs for the remainder of this blog post and focus of PAs instead. 
+
+ More importantly, however, we can see that our memory range of interest is not marked as XN, as is expected. After all, the kernel should be executable by EL1. But bafflingly, the entire range is marked with the stage 2 access permission (S2AP) bits set to “11”. Once again, let’s consult the ARM VMSA:
+
+ Screenshot from 2017-01-28 12:51:37.png
+So this seems a little odd… Does this mean that the entire kernel’s code range is marked as RWX in both the stage 1 and the stage 2 translation table? That doesn’t seem to add up. Indeed, trying to write to memory addresses containing EL1 kernel code results in a translation fault, so we’re definitely missing something here.
+
+ Ah, but wait! The stage 2 translation tables that we’ve analysed above are simply the initial translation tables which are used when RKP boots. Perhaps after the EL1 kernel finishes its initialisation it will somehow request RKP to modify these mappings in order to protect its own memory ranges.
+
+ Indeed, looking once again at the kernel’s initialisation routines, we can see that shortly after booting, the EL1 kernel calls into RKP:
+
+ static void rkp_init(void)
+{
+ rkp_init_t init;
+ init.magic = RKP_INIT_MAGIC;
+ init.vmalloc_start = VMALLOC_START;
+ init.vmalloc_end = (u64)high_memory;
+ init.init_mm_pgd = (u64)__pa(swapper_pg_dir);
+ init.id_map_pgd = (u64)__pa(idmap_pg_dir);
+ init.rkp_pgt_bitmap = (u64)__pa(rkp_pgt_bitmap);
+ init.rkp_map_bitmap = (u64)__pa(rkp_map_bitmap);
+ init.rkp_pgt_bitmap_size = RKP_PGT_BITMAP_LEN;
+ init.zero_pg_addr = page_to_phys(empty_zero_page);
+ init._text = (u64) _text;
+ init._etext = (u64) _etext;
+ if (!vmm_extra_mem) {
+  printk(KERN_ERR"Disable RKP: Failed to allocate extra mem\n");
+  return;
+ }
+ init.extra_memory_addr = __pa(vmm_extra_mem);
+ init.extra_memory_size = 0x600000;
+ init._srodata = (u64) __start_rodata;
+ init._erodata =(u64) __end_rodata;
+ init.large_memory = rkp_support_large_memory;
+
+ rkp_call(RKP_INIT, (u64)&init, 0, 0, 0, 0);
+ rkp_started = 1;
+ return;
+}
+
+ On the kernel’s side we can see that this command provides RKP with many of the memory ranges belonging to the kernel. In order to figure out the implementation of this command, let’s shift our focus back to RKP. By reverse engineering the implementation of this command within RKP, we arrive at the following approximate high-level logic:
+
+ void handle_rkp_init(...) {
+    ...
+    void* kern_text_phys_start = rkp_get_pa(text);
+    void* kern_text_phys_end = rkp_get_pa(etext);
+    rkp_debug_log("DEFERRED INIT START", 0, 0, 0);
+
+    if (etext & 0x1FFFFF)
+        rkp_debug_log("Kernel range is not aligned", 0, 0, 0);
+ 
+    if (!rkp_s2_range_change_permission(kern_text_phys_start, kern_text_phys_end, 128, 1, 1))
+        rkp_debug_log("Failed to make Kernel range RO", 0, 0, 0);
+
+    ...
+}
+
+ The highlighted function call above is used in order to modify the stage 2 access permissions for a given PA memory range. Calling the function with these arguments will cause the given memory range to be marked as read-only in the stage 2 translation. This means that shortly after booting the EL1 kernel, RKP does indeed lock down write access to the kernel’s code ranges.
+
+ ...And yet, something’s still missing here. Remember that RKP should not only prevent the kernel’s code from being modified, but it aims to also prevent attackers from creating new executable code in EL1. Well, while the kernel’s code is indeed being marked as read-only in the stage 2 translation table, does that necessarily prevent us from creating new executable code?
+
+ Recall that we’ve previously encountered the presence of KASLR, in which the kernel’s base address (both in the kernel’s VAS and the corresponding physical address) is shifted by a randomised “slide” value. Moreover, since the Linux kernel assumes that the virtual to physical offset for kernel addresses is constant, this means that the same slide value is used for both virtual and physical addresses. 
+
+ However, there’s a tiny snag here -- the address range we examined earlier on, the same one which is marked RWX is both the stage 1 and stage 2 translation table, is much larger than the kernel’s text segment. This is, partly, in order to allow the kernel to be placed somewhere within that region after the KASLR slide is determined. However, as we’ve just seen, after choosing the KASLR slide, RKP only protects the range spanning from “_text” to “_etext” - that is, only the region containing the kernel’s text after applying the KASLR slide.
+
+ kaslr_rwx (1).png
+
+ This leaves us with two large regions: [0x80000000, “_text”], [“_etext”, 0x81400000], which are left marked as RWX in both the stage 1 and stage 2 translation tables! Thus, we can simply write new code to these regions and execute it freely within the context of EL1, therefore bypassing the code loading mitigation. I’ve included a small PoC which demonstrates this issue, here.
+
+ Mitigation #3 - Bypassing EL1 Memory Controls
+
+ As we’ve just seen in the previous section, some of RKP’s stated goals require memory controls that are enforced not only in the stage 2 translation, but also directly in the stage 1 translation used by EL1. For example, RKP aims to ensure that all pages, with the exception of the kernel’s code, are marked as PXN. These goals require RKP to have some form of control over the contents of the stage 1 translation table.
+
+ So how exactly does RKP make sure that these kinds of assurances are kept? This is done by using a combined approach; first, the stage 1 translation tables are placed in a region which is marked as read-only in the stage 2 translation tables. This, in effect, disallows EL1 code from directly modifying the translation tables themselves. Secondly, the kernel is instrumented (a form of paravirtualisation), in order to make it aware of RKP’s existence. This instrumentation is performed so that each write operation to a data structure used in the stage 1 translation process (a PGD, PMD or PTE), will instead call an RKP command, informing it of the requested change.
+
+ Putting these two defences together, we arrive at the conclusion that all modifications to the stage 1 translation table must therefore pass through RKP which can, in turn, ensure that they do not violate any of its security goals.
+
+ Or do they?
+
+ While these rules do prevent modification of the current contents of the stage 1 translation table, they don’t prevent an attacker from using the memory management control registers to circumvent these protections. For example, an attacker could attempt to modify the value of TTBR1_EL1 directly, pointing it at an arbitrary (and unprotected) memory address.
+
+ Obviously, such operations cannot be permitted by RKP. In order to allow the hypervisor to deal with such situations, the “Hypervisor Configuration Register” (HCR) can be leveraged. Recall that the HCR allows the hypervisor to disallow certain operations from being performed under EL1. One such operation which can be trapped is the modification of the EL1 memory management control registers.
+
+ 
+
+ In the case of RKP on Exynos devices, while it does not set HCR_EL2.TRVM (i.e., it allows all read access to memory control registers), it does indeed set HCR_EL2.TVM, allowing it to trap write access to these registers.
+
+ So although we’ve established that RKP does correctly trap write access to the control registers, this still doesn’t guarantee they remain protected. This is actually quite a delicate situation - the Linux kernel requires some access to many of these registers in order to perform regular operations. This means that while some access can be denied by RKP, other operations need to be inspected carefully in order to make sure they do not violate RKP’s safety guarantees, before allowing them to proceed. Once again, we’ll need to reverse engineer RKP’s code to assess the situation.
+
+ Screenshot from 2017-01-30 01:54:02.png
+
+ As we can see above, attempts to modify the location of the translation tables themselves, result in RKP correctly verifying the entire translation table, making sure it follows the allowed stage 1 translation policy. In contrast, there are a couple of crucial memory control registers which, at the time, weren’t intercepted by RKP at all - TCR_EL1 and SCTLR_EL1!
+
+ Inspecting these registers in the ARM reference manual reveals that they both can have profound effects on the stage 1 translation process.
+
+ For starters, the System Control Register for EL1 (SCTLR_EL1) provides top-level control over the system, including the memory system, in EL1. One bit of crucial importance in our scenario is the SCTLR_EL1.M bit.
+
+ 
+
+ This bit denotes the state of the MMU for stage 1 translation in EL0 and EL1. Therefore, simply by unsetting this bit, an attacker can disable the MMU for stage 1 translation. Once the bit is unset, all memory translation in EL1 map directly to IPAs, but more importantly - these memory translation do not have any access permissions checks enabled, effectively making all memory ranges considered as RWX in the stage 1 translation. This, in turn, bypasses several of RKP’s assurances, such as making sure that only the kernel’s text is not marked as PXN.
+
+ As for the Translation Control Register for EL1 (TCR_EL1), it’s effects are slightly more subtle. Instead of completely disabling the stage 1 translation’s MMU, this register governs the way in which translation is performed. 
+
+  
+
+ Indeed, observing this register more closely, reveals certain key ways in which an attacker may leverage it in order to circumvent RKP’s stage 1 protections. For example, the AARCH64 memory translation table may assume different formats, depending on the translation granule under which the system is operating. Normally, AARCH64 Linux kernels use a translation granule of 4KB.
+
+ This fact is implicitly acknowledged in RKP. For example, when code in EL1 changes the value of the translation table (e.g., TTBR1_EL1), RKP must protect this PGD in the stage 2 translation in order to make sure that EL1 cannot gain access to it. Indeed, reversing the corresponding code within RKP reveals that it does just that:
+
+ Screenshot from 2017-01-30 01:56:10.png
+
+ However, as we can see in the picture above, the stage 2 protection is only performed on a 4KB region (a single page). This is because when using a 4KB translation granule, the translation regime has a translation table size of 4KB. However, this is where we, as an attacker, come in. What if we were to change the value of the translation granule to 64KB, by modifying TCR_EL1.TG0 and TCR_EL1.TG1?
+
+ 
+
+ In that case, the translation regime’s translation table will now be 64KB as well, as opposed to 4KB under the previous regime. Since RKP uses a hard-coded value of 4KB when protecting the translation table, the bottom 60KB remain unprotected by RKP, allowing an attacker in EL1 to freely modify it in order to point to any IPA, any more crucially, with any access permissions, UXN/PXN values.
+
+ 
+
+ Lastly, it should once more be noted that while the gadgets needed to access these registers aren’t abundant in the kernel’s image, they are present in the embedded RKP binary on Exynos devices. Therefore we can simply execute these gadgets within EL1 in order to modify the registers above. I’ve written a small PoC that demonstrates this issue by disabling the stage 1 MMU in EL1.
+
+ Mitigation #4 - Accessing Stage 2 Unmapped Memory
+
+ Other than the operating system’s memory, there exist several other memory regions which may contain potentially sensitive information that should not be accessible by code running in EL0 and EL1. For example, peripherals on the SoC may have their firmware stored in the “Normal World”, in physical memory ranges which should never be accessible to Android itself.
+
+ In order to enforce such protections, RKP explicitly unmaps a few memory ranges from the stage 2 translation table. By doing so, any attempt to access these PA ranges in EL0 or EL1 will result in a translation fault, consequently crashing the kernel and rebooting the device.
+
+ Moreover, RKP’s own memory ranges should also be made inaccessible to lesser privileged code. This is crucial so as to protect RKP from modifications by EL0 and EL1, but also serves to protect the sensitive information that is processed within RKP (such as the “cfprop” key). Indeed, after starting up, RKP explicitly unmaps it’s own memory ranges in order to prevent such access:
+
+ s2unmap.png
+
+ Admittedly, the stage 2 translation table itself is placed within the very region being unmapped from the stage 2 translation table, therefore ensuring that code in EL1 cannot modify it. However, perhaps we could find another way to control stage 2 mappings, but leveraging RKP itself.
+
+ For example, as we’ve previously seen, certain operations such as setting TTBR1_EL1 result in changes to the stage 2 translation table. Combing over the RKP binary, we come across one such operation, as follows:
+
+ __int64 rkp_set_init_page_ro(unsigned args* args_buffer)
+{
+  unsigned long page_pa = rkp_get_pa(args_buffer->arg0);
+  if ( page_pa < rkp_get_pa(text) || page_pa >= rkp_get_pa(etext) )
+  {
+    if ( !rkp_s2_page_change_permission(page_pa, 128, 0, 0) )
+      return rkp_debug_log("Cred: Unable to set permission for init cred", 0LL, 0LL, 0LL);
+  }
+  else
+  {
+    rkp_debug_log("Good init CRED is within RO range", 0LL, 0LL, 0LL);
+  }
+  rkp_debug_log("init cred page", 0LL, 0LL, 0LL);
+  return rkp_set_pgt_bitmap(page_pa, 0);
+}
+
+ As we can see, this command receives a pointer from EL1, verifies it is not within the kernel’s text segment, and if so proceeds to call rkp_s2_page_change_permission in order to modify the access permissions on this range in the stage 2 translation table. Digging deeper into the function reveals that this set of parameters is used to denote the region as read-only and XN.
+
+ But, what if we were to supply a page that resides somewhere that is not currently mapped in the stage 2 translation at all, such as RKP’s own memory ranges? Well, in this case, rkp_s2_page_change_permission will happily create a translation entry for the given page, effectively mapping in a previously unmapped region!
+
+ This allows us to re-map any stage 2 unmapped region (albeit as read-only and XN) from EL1. I’ve written a small PoC which demonstrates the issue by stage 2 re-mapping RKP’s physical address range and reading it from EL1.
+Design Improvements to RKP
+
+ After seeing some specific issues in this blog post, highlighting how the different defence mechanisms of RKP could be subverted by an attacker, let’s zoom out for a second and think about some design choices that could serve to strengthen RKP’s security posture against future attacks.
+
+ First, RKP on Exynos devices is currently being bootstrapped by EL1 code. This is in contrast to the model used on Qualcomm devices, whereby the EL2 code is both verified by the bootloader, and subsequently booted by EL3. Ideally, I believe the same model used on Qualcomm devices should be adopted for Exynos as well.
+
+ Performing the bootstrapping in this order automatically fixes other related security issues “for free”, such as the presence of RKP’s binary within the kernel’s text segment. As we’ve seen, this seemingly harmless fact is in fact very useful for an attacker in several of the scenarios we’ve highlighted in this post. Moreover, it removes other risks such as attackers exploiting the EL1 kernel early in the boot process and leveraging that access to subvert the initialisation of EL2. 
+
+ As in interim improvement, RKP decided to zero out the RKP binary resident in EL1’s code during initialisation. This improvement will roll out in the next Nougat milestone release of Samsung devices, and addresses the issue of attackers leveraging the binary for gadgets. However, it doesn’t address the issue regarding potential early exploitation of the EL1 kernel to subvert the initialization of EL2, which requires a more extensive modification.
+
+ Second, RKP’s code segments are currently marked as both writable and executable in TTBR0_EL2. This, combined with the fact that SCTLR_EL2.WXN is not set, allows an attacker to use any memory corruption primitive in EL2 in order to directly overwrite the EL2 code segments, allowing for much easier exploitation of the hypervisor.
+
+ While I have not chosen to include these issues in the blog post, I’ve found several memory corruptions, any of which could be used to modify memory within the context of RKP. Combining these two facts together, we can conclude that any of these memory corruptions could be used by an attacker to directly modify RKP’s code itself, therefore gaining code execution within it.
+
+ Simply setting SCTLR_EL2.WXN and marking RKP’s code as read-only would not prevent an attacker from gaining access to RKP, but it could make exploitation of such memory corruptions harder to exploit and more time consuming.
+
+ Third, RKP should lock down all memory control registers, unless they absolutely must be used by the Linux kernel. This would prevent abuse of several of these registers which may subtly affect the system’s behaviour, and in doing so, violate assumptions made by RKP about the kernel. Where these registers have to be modified by EL1, RKP should verify that only the appropriate bits are accessed.
+
+ RKP has since locked down access to the two registers mentioned in this blog post. This is a good step in the right direction, and unfortunately as access to some of these registers must be retained, simply revoking access to all of them is not a feasible solution. As such, preventing access to other memory control registers remains a long term goal.
+
+Lastly, there should be some distinction between stage 2 unmapped regions that were simply never mapped in, and those which were explicitly mapped out. This can be achieved by storing the memory ranges corresponding to explicitly unmapped regions, and disallowing any modification that would result in remapping them within RKP. While the issue I highlighted is now fixed, implementing this extra step would prevent further similar issues from cropping up in the future.
+Posted by Ben at 9:24 AM 
+Email This
+BlogThis!
+Share to Twitter
+Share to Facebook
+Share to Pinterest
+
+1 comment:
+
+D@dyFebruary 12, 2017 at 12:07 PM
+Thank you for this very good article. It was quite interesting and instructive for me to read.
+
+Reply
+
+Newer Post Older Post Home
+Subscribe to: Post Comments (Atom)
+Search This Blog
+
+
+ Search
+Archives
+
+►  2018 (2)
+▼  2017 (19)
+►  December (1)
+►  October (3)
+►  September (2)
+►  August (2)
+►  July (1)
+►  May (1)
+►  April (6)
+►  March (1)
+▼  February (2)
+Attacking the Windows NVIDIA Driver
+Lifting the (Hyper) Visor: Bypassing Samsung’s Rea...
+►  2016 (17)
+►  2015 (33)
+►  2014 (11)
+Simple theme. Powered by Blogger.
