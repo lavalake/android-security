@@ -5,4 +5,6 @@
   Confine privileged daemons.
   Prevent privilege escalation by apps
 3. centralized analyzable policy
+4. seams
+5. servicekeeper
   
