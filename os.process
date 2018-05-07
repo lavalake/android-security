@@ -1,0 +1,113 @@
+/**
+     * Lowest available thread priority.  Only for those who really, really
+     * don't want to run if anything else is happening.
+     * Use with {@link #setThreadPriority(int)} and
+     * {@link #setThreadPriority(int, int)}, <b>not</b> with the normal
+     * {@link java.lang.Thread} class.
+     */
+    public static final int THREAD_PRIORITY_LOWEST = 19;
+    
+    /**
+     * Standard priority background threads.  This gives your thread a slightly
+     * lower than normal priority, so that it will have less chance of impacting
+     * the responsiveness of the user interface.
+     * Use with {@link #setThreadPriority(int)} and
+     * {@link #setThreadPriority(int, int)}, <b>not</b> with the normal
+     * {@link java.lang.Thread} class.
+     */
+    public static final int THREAD_PRIORITY_BACKGROUND = 10;
+    
+    /**
+     * Standard priority of threads that are currently running a user interface
+     * that the user is interacting with.  Applications can not normally
+     * change to this priority; the system will automatically adjust your
+     * application threads as the user moves through the UI.
+     * Use with {@link #setThreadPriority(int)} and
+     * {@link #setThreadPriority(int, int)}, <b>not</b> with the normal
+     * {@link java.lang.Thread} class.
+     */
+    public static final int THREAD_PRIORITY_FOREGROUND = -2;
+    
+    /**
+     * Standard priority of system display threads, involved in updating
+     * the user interface.  Applications can not
+     * normally change to this priority.
+     * Use with {@link #setThreadPriority(int)} and
+     * {@link #setThreadPriority(int, int)}, <b>not</b> with the normal
+     * {@link java.lang.Thread} class.
+     */
+    public static final int THREAD_PRIORITY_DISPLAY = -4;
+    
+    /**
+     * Standard priority of the most important display threads, for compositing
+     * the screen and retrieving input events.  Applications can not normally
+     * change to this priority.
+     * Use with {@link #setThreadPriority(int)} and
+     * {@link #setThreadPriority(int, int)}, <b>not</b> with the normal
+     * {@link java.lang.Thread} class.
+     */
+    public static final int THREAD_PRIORITY_URGENT_DISPLAY = -8;
+
+    /**
+     * Standard priority of audio threads.  Applications can not normally
+     * change to this priority.
+     * Use with {@link #setThreadPriority(int)} and
+     * {@link #setThreadPriority(int, int)}, <b>not</b> with the normal
+     * {@link java.lang.Thread} class.
+     */
+    public static final int THREAD_PRIORITY_AUDIO = -16;
+
+    /**
+     * Standard priority of the most important audio threads.
+     * Applications can not normally change to this priority.
+     * Use with {@link #setThreadPriority(int)} and
+     * {@link #setThreadPriority(int, int)}, <b>not</b> with the normal
+     * {@link java.lang.Thread} class.
+     */
+    public static final int THREAD_PRIORITY_URGENT_AUDIO = -19;
+
+    /**
+     * Minimum increment to make a priority more favorable.
+     */
+    public static final int THREAD_PRIORITY_MORE_FAVORABLE = -1;
+
+    /**
+     * Minimum increment to make a priority less favorable.
+     */
+    public static final int THREAD_PRIORITY_LESS_FAVORABLE = +1;
+
+    /**
+     * Default scheduling policy
+     * @hide
+     */
+    public static final int SCHED_OTHER = 0;
+
+    /**
+     * First-In First-Out scheduling policy
+     * @hide
+     */
+    public static final int SCHED_FIFO = 1;
+
+    /**
+     * Round-Robin scheduling policy
+     * @hide
+     */
+    public static final int SCHED_RR = 2;
+
+    /**
+     * Batch scheduling policy
+     * @hide
+     */
+    public static final int SCHED_BATCH = 3;
+
+    /**
+     * Idle scheduling policy
+     * @hide
+     */
+    public static final int SCHED_IDLE = 5;
+
+    /**
+     * Reset scheduler choice on fork.
+     * @hide
+     */
+    public static final int SCHED_RESET_ON_FORK = 0x40000000;
