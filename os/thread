@@ -1,0 +1,9 @@
+Thread annotations
+
+Thread annotations check if a method is called from a specific type of thread. The following thread annotations are supported:
+
+@MainThread
+@UiThread
+@WorkerThread
+@BinderThread
+@AnyThread
