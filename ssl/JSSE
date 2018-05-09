@@ -1,0 +1,2 @@
+https://docs.oracle.com/javase/7/docs/technotes/guides/security/jsse/JSSERefGuide.html#Features
+One of the reasons SSL is effective is that it uses several different cryptographic processes. SSL uses public key cryptography to provide authentication, and secret key cryptography and digital signatures to provide for privacy and data integrity.
