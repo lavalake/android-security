@@ -2,3 +2,10 @@
 2. user CA
 3. networkSecurityConfig used for trusting customer CA
 4. two way autherization
+5. useful link
+  Android Security Internals, Nikolay Elenkov
+  http://nelenkov.blogspot.ro/2011/12/
+  using-custom-certificate-trust-store-on.html
+  https://github.com/nelenkov/custom-cert-https
+  http://docs.oracle.com/javase/7/docs/technotes/
+  guides/security/jsse/JSSERefGuide.html
