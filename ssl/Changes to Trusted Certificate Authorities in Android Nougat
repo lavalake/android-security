@@ -1,1 +1,6 @@
 https://android-developers.googleblog.com/2016/07/changes-to-trusted-certificate.html
+To provide a more consistent and more secure experience across the Android ecosystem, beginning with Android Nougat, compatible devices trust only the standardized system CAs maintained in AOSP.
+
+Customizing trusted CAs
+
+Customizing the CAs your app trusts on Android Nougat is easy using the Network Security Config. 
