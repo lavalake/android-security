@@ -1,0 +1,8 @@
+/android/external/conscrypt/platform/src/main/java/org/conscrypt/
+put("KeyManagerFactory.PKIX", KeyManagerFactoryImpl.class.getName());
+50        put("Alg.Alias.KeyManagerFactory.X509", "PKIX");
+51
+52        put("TrustManagerFactory.PKIX", TrustManagerFactoryImpl.class.getName());
+53        put("Alg.Alias.TrustManagerFactory.X509", "PKIX");
+54
+55        put("KeyStore.AndroidCAStore", TrustedCertificateKeyStoreSpi.class.getName());
