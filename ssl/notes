@@ -1,0 +1,4 @@
+1. pre-installed CA
+2. user CA
+3. networkSecurityConfig used for trusting customer CA
+4. two way autherization
