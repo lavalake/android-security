@@ -1,1 +1,4 @@
 http://tutorials.jenkov.com/java-concurrency/non-blocking-algorithms.html
+volatile:
+  volatile guarantee the read and write will work direclty on the main memory not local cache or registers. On multiple CPU,
+  thread can read the updated value from main memory. So if there is only one writer and multiple reader, you can use volatile.
