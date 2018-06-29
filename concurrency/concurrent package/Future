@@ -1,0 +1,62 @@
+/**
+39 * A {@code Future} represents the result of an asynchronous
+40 * computation.  Methods are provided to check if the computation is
+41 * complete, to wait for its completion, and to retrieve the result of
+42 * the computation.  The result can only be retrieved using method
+43 * {@code get} when the computation has completed, blocking if
+44 * necessary until it is ready.  Cancellation is performed by the
+45 * {@code cancel} method.  Additional methods are provided to
+46 * determine if the task completed normally or was cancelled. Once a
+47 * computation has completed, the computation cannot be cancelled.
+48 * If you would like to use a {@code Future} for the sake
+49 * of cancellability but not provide a usable result, you can
+50 * declare types of the form {@code Future<?>} and
+51 * return {@code null} as a result of the underlying task.
+52 *
+53 * <p>
+54 * <b>Sample Usage</b> (Note that the following classes are all
+55 * made-up.)
+56 *
+57 * <pre> {@code
+58 * interface ArchiveSearcher { String search(String target); }
+59 * class App {
+60 *   ExecutorService executor = ...
+61 *   ArchiveSearcher searcher = ...
+62 *   void showSearch(final String target)
+63 *       throws InterruptedException {
+64 *     Future<String> future
+65 *       = executor.submit(new Callable<String>() {
+66 *         public String call() {
+67 *             return searcher.search(target);
+68 *         }});
+69 *     displayOtherThings(); // do other things while searching
+70 *     try {
+71 *       displayText(future.get()); // use future
+72 *     } catch (ExecutionException ex) { cleanup(); return; }
+73 *   }
+74 * }}</pre>
+75 *
+76 * The {@link FutureTask} class is an implementation of {@code Future} that
+77 * implements {@code Runnable}, and so may be executed by an {@code Executor}.
+78 * For example, the above construction with {@code submit} could be replaced by:
+79 * <pre> {@code
+80 * FutureTask<String> future =
+81 *   new FutureTask<>(new Callable<String>() {
+82 *     public String call() {
+83 *       return searcher.search(target);
+84 *   }});
+85 * executor.execute(future);}</pre>
+86 *
+87 * <p>Memory consistency effects: Actions taken by the asynchronous computation
+88 * <a href="package-summary.html#MemoryVisibility"> <i>happen-before</i></a>
+89 * actions following the corresponding {@code Future.get()} in another thread.
+90 *
+91 * @see FutureTask
+92 * @see Executor
+93 * @since 1.5
+94 * @author Doug Lea
+95 * @param <V> The result type returned by this Future's {@code get} method
+96 */
+
+
+http://www.baeldung.com/java-future
