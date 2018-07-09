@@ -1,0 +1,13 @@
+https://developer.android.com/guide/practices/ui_guidelines/activity_task_design
+1. A task is the sequence of activities the user follows to accomplish an objective, regardless of which applications the activities belong to.
+2. It's notable that these activities can be in any application — that is, all in the same application or in different ones. 
+ That is, a task that starts out in contacts can continue, by choosing an email address, to an email activity and then, 
+ by attaching a file, to a picture gallery to pick from. Contacts, email and picture gallery are all separate applications.
+3. When writing an activity that won't be re-used, don't specify intent filters — use explicit intents
+
+If you're writing an activity that you don't want other activities to use, be sure not to add any intent filters to that 
+activity. This applies to an activity that will be launched only from the application launcher or from other activities 
+inside your application. Instead, just create intents specifying the explicit component to launch — that is, explicit intents.
+In this case, there's just no need for intent filters. Intent filters are published to all other applications, so if you make 
+an intent filter, what you're doing is publishing access to your activity, which means you can cause unintentional security 
+holes.
