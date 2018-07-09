@@ -3,3 +3,20 @@ A common misunderstanding about Android multitasking is the difference between a
 are not tightly coupled entities: applications may seem present to the user without an actual process currently running the app;
 multiple applications may share processes, or one application may make use of multiple processes depending on its needs; 
 the process(es) of an application may be kept around by Android even when that application is not actively doing something
+2. keep activity state
+  If a user later returns to an application that's been killed, Android needs a way to re-launch it in the same state as it was
+  last seen, to preserve the "all applications are running all of the time" experience. This is done by keeping track of the 
+  parts of the application the user is aware of (the Activities), and re-starting them with information about the last state 
+  they were seen in. This last state is generated each time the user leaves that part of the application, not when it is killed,
+  so that the kernel can later freely kill it without depending on the application to respond correctly at that point.
+  In some ways, Android's process management can be seen as a form of swap space: application processes represent a certain 
+  amount of in-use memory; when memory is low, some processes can be killed (swapped out); when those processes are needed 
+  again, they can be re-started from their last saved state (swapped in).
+3. broadcast receiver
+For these tasks, the application needs a way to tell Android "I would explicitly like to run at this point." There are two main
+facilities available to applications for this, represented by two kinds of components they can publish in their manifest: 
+broadcast receivers and services.  
+A BroadcastReceiver allows an application to run, for a brief amount of time, in the background as a result of something else happening
+Because information about the receiver is part of an application's manifest, Android can find and launch the application even if
+it isn't running; of course if it already has its process available in the background, the broadcast can very efficiently be 
+directly dispatched to it.
