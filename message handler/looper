@@ -1,0 +1,21 @@
+1. static final ThreadLocal<Looper> sThreadLocal = new ThreadLocal<Looper>();
+Use ThreadLocal, every thread will have own copy of looper
+2. private static Looper sMainLooper;  // guarded by Looper.class
+  /**
+101     * Initialize the current thread as a looper, marking it as an
+102     * application's main looper. The main looper for your application
+103     * is created by the Android environment, so you should never need
+104     * to call this function yourself.  See also: {@link #prepare()}
+105     */
+106    public static void prepareMainLooper() {
+107        prepare(false);
+108        synchronized (Looper.class) {
+109            if (sMainLooper != null) {
+110                throw new IllegalStateException("The main Looper has already been prepared.");
+111            }
+112            sMainLooper = myLooper();
+113        }
+114    }
+
+3. ActivityThread
+  in main(), call Looper.prepareMainLooper();
