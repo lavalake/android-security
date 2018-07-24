@@ -1,3 +1,20 @@
 https://www.cnblogs.com/dolphin0520/p/3920407.html
-首先，在每个线程Thread内部有一个ThreadLocal.ThreadLocalMap类型的成员变量threadLocals，这个threadLocals就是用来存储实际的变量副本的，
+1. 首先，在每个线程Thread内部有一个ThreadLocal.ThreadLocalMap类型的成员变量threadLocals，这个threadLocals就是用来存储实际的变量副本的，
 键值为当前ThreadLocal变量，value为变量副本
+
+2. 对象存放在哪里
+
+在Java中，栈内存归属于单个线程，每个线程都会有一个栈内存，其存储的变量只能在其所属线程中可见，即栈内存可以理解成线程的私有内存。而堆内存中的对象对所有
+线程可见。堆内存中的对象可以被所有线程访问
+问：那么是不是说ThreadLocal的实例以及其值存放在栈上呢？
+
+其实不是，因为ThreadLocal实例实际上也是被其创建的类持有（更顶端应该是被线程持有）。而ThreadLocal的值其实也是被线程实例持有。它们都是位于堆上，只是通过一些技巧将可见性修改成了线程可见。
+会导致内存泄露么
+
+3. 有网上讨论说ThreadLocal会导致内存泄露，原因如下
+
+首先ThreadLocal实例被线程的ThreadLocalMap实例持有，也可以看成被线程持有。
+如果应用使用了线程池，那么之前的线程实例处理完之后出于复用的目的依然存活
+所以，ThreadLocal设定的值被持有，导致内存泄露。
+上面的逻辑是清晰的，可是ThreadLocal并不会产生内存泄露，因为ThreadLocalMap在选择key的时候，并不是直接选择ThreadLocal实例，
+而是ThreadLocal实例的弱引用
