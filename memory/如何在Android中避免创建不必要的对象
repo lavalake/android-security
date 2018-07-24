@@ -1,0 +1,16 @@
+https://droidyue.com/blog/2016/08/01/avoid-creating-unnecesssary-objects-in-android/
+使用单例
+
+避免进行隐式装箱
+
+自动装箱是Java 5 引入的一个特性，即自动将原始类型的数据转换成对应的引用类型，比如将int转为Integer等。
+
+这种特性，极大的减少了编码时的琐碎工作，但是稍有不注意就可能创建了不必要的对象了。比如下面的代码
+
+Integer sum = 0;
+for(int i=1000; i<5000; i++){
+   sum+=i;
+}
+由于我们这里声明的sum为Integer类型，在上面的循环中会创建将近4000个无用的Integer对象，在这样庞大的循环中，会降低程序的性能并且加重了垃圾回收的工作量。
+因此在我们编程时，需要注意到这一点，正确地声明变量类型，避免因为自动装箱引起的性能问题。
+另外，当将原始数据类型的值加入集合中时，也会发生自动装箱，所以这个过程中也是有对象创建的。如有需要避免这种情况，可以选择SparseArray,SparseBooleanArray,SparseLongArray等容器
