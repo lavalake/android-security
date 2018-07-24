@@ -1,0 +1,3 @@
+https://www.cnblogs.com/dolphin0520/p/3920407.html
+首先，在每个线程Thread内部有一个ThreadLocal.ThreadLocalMap类型的成员变量threadLocals，这个threadLocals就是用来存储实际的变量副本的，
+键值为当前ThreadLocal变量，value为变量副本
