@@ -1,0 +1,79 @@
+http://blog.ifjy.me/android/2016/07/16/Android%E9%80%9A%E4%BF%A1%E8%BF%87%E7%A8%8B%E4%B8%AD%E7%9A%84%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%AE%A1%E7%90%86.html
+在Binder通信机制里，客户端与服务端之间的通信是在专门的IPC通信线程 中进行的。这些线程构成一个线程池。线程的创建和销毁是在用户空间进行 的，而对线程的控制是在驱动层进行的，即驱动控制线程池中线程的生命， 而线程本身则是运行在用户空间的。驱动层是通过 BR_SPAWN_LOOPER 向用户 空间发送创建新线程的命令。
+
+线程池的大小可以设置。默认情况下，线程池只有一个主线程，它在进程生 命周期期间是不会退出。与线程池相关的几个变量设置在struct binder_proc 结构体中：
+
+struct binder_proc {
+        ...
+        int max_threads;//max thread
+        int requested_threads;//
+        int requested_threads_started;//requested thread seq No
+        int ready_threads;//available for use
+        ...
+};
+其中，=maxthreads= 表示当前进程线程池的大小。ioctl命令 BINDER_SET_MAX_THREADS 用来设置这个值，默认情况下是0，即不开启线程 池。 ready_threads 表示当前线程池中有没有可用的空闲线程。 requested_threads 请求开启线程的数量。 requested_threads_started 表示 当前已经接受请求开启的线程数量。
+
+对于IPC通信的服务端进程，一般会执行如下的调用启动线程池：
+
+ProcessState::self()->setThreadPoolMaxThreadCount(4);
+ProcessState::self()->startThreadPool();
+IPCThread::self()->joinThreadPool();
+上述代码会在一个进程中执行，并产生两个线程，其中一个是进程的主线程， 但这两个线程都是Binder主线程，即他不会纳入线程池的管理。网上有不少 说法是最后一个调用看起来是多余的，原因是去掉后，也可以正常执行，但 是其实不然。在我看来，在主线程中调用 IPCThread::self()->joinThreadPool() 的一层目的是确保前一句调用产生 的线程不会因为执行到了main函数结尾而被迫退出，因为 ProcessState::self()->startThreadPool() 不会导致主线程阻塞，而 IPCThread::self()->joinThreadPool() 调用才会导致主线程阻塞。并且， 它们提供相同的功能：它能处理Binder驱动发送上来的一些请求或返回值， 进一步提高了Binder命令处理的吞吐量。当然，如果在他们之间加入了让主 线程阻塞的代码，则最后的函数调用是可以省略的，否则是不能省略的。
+
+执行完上述语句后, 已经有两个服务线程了，此时线程池线程的数量为0， 后续可以创建4个线程。默认情况下，线程池中没有线程，由于本身已经有 了2个线程可用，一般情况下，能满足要求。但是，当有多个并发的IPC请求 时，可能会触发内核增加更多的IPC通信线程来服务这些请求。当接受 Binder驱动从内核中发出的 BR_SPAWN_LOOPER 命令时，会启动一个非Binder主 线程。我们来看下在什么情况下会触发这种情况：
+
+if (proc->requested_threads + proc->ready_threads == 0 &&
+            proc->requested_threads_started < proc->max_threads &&
+            (thread->looper & (BINDER_LOOPER_STATE_REGISTERED |
+             BINDER_LOOPER_STATE_ENTERED)) /* the user-space code fails to */
+             /*spawn a new thread if we leave this out */) {
+                proc->requested_threads++;
+                binder_debug(BINDER_DEBUG_THREADS,
+                             "%d:%d BR_SPAWN_LOOPER\n",
+                             proc->pid, thread->pid);
+                if (put_user(BR_SPAWN_LOOPER, (uint32_t __user *)buffer))
+                        return -EFAULT;
+                binder_stat_br(proc, thread, BR_SPAWN_LOOPER);
+        }
+在请求的线程数和空闲的线程数为零且已经请求并开启的线程数小于线程池 的最大允许线程数量时，就向用户空间发送命令，以开启新的接收线程来处 理请求。因为此时，接收进程中所有的线程都在忙碌中。
+
+在用户空间通过如下调用启动线程：
+
+mProcess->spawnPooledThread(false);
+最终会调用如下函数：
+
+void IPCThreadState::joinThreadPool(bool isMain)
+{
+    LOG_THREADPOOL("**** THREAD %p (PID %d) IS JOINING THE THREAD POOL\n", (void*)pthread_self(), getpid());
+
+    mOut.writeInt32(isMain ? BC_ENTER_LOOPER : BC_REGISTER_LOOPER);
+    …
+}
+这种情况下，会通过向Binder驱动发 BC_REGISTER_LOOPER 通知驱动用户空间线 程已经创建，这样驱动也会做些数据统计：
+
+ case BC_REGISTER_LOOPER:
+…
+} else {
+    proc->requested_threads--;
+    proc->requested_threads_started++;
+  }
+thread->looper |= BINDER_LOOPER_STATE_REGISTERED;
+break;
+驱动会更新 proc->requested_threads_started 来统计当前已经请求开启并成 功开启的线程数量，这个值将作为判断线程池是否已经满的依据。
+
+而在Binder驱动层，会跟用户空间的线程关联一个 struct binder_thread 实例，这个结构记录了内核空间的在该线程上执行的一些IPC状态信息。其数 据结构定义如下：
+
+struct binder_thread {
+        struct binder_proc *proc;  //线程所属的进程
+        struct rb_node rb_node;  //红黑树的结点，进程通过该结点将线程加入到红黑树中
+        int pid; //线程的pid
+        int looper;  //线程所处的状态
+        struct binder_transaction *transaction_stack;//transaction session list on this thread
+        struct list_head todo; //在该线程上的Task列表
+        uint32_t return_error; /* Write failed, return error code in read buf */
+        uint32_t return_error2; /* Write failed, return error code in read */
+                /* buffer. Used when sending a reply to a dead process that */
+                /* we are also waiting on */
+        wait_queue_head_t wait; //该线程的等待队列
+        struct binder_stats stats; //统计该线程上的命令数量
+};
