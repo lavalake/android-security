@@ -1,5 +1,7 @@
 http://www.vogella.com/tutorials/AndroidServices/article.html#servicecommunication
 https://developer.android.com/reference/android/app/Service
+A Service is an application component that can perform long-running operations in the background, 
+and it doesn't provide a user interface.
 1. service is not process nor thread. Service originally run in main thread.
 2. A facility for application to tell the system about something it want to do in the background. Context.startService() will tell system to
    schedule work for the service.
