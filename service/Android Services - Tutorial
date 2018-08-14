@@ -35,3 +35,12 @@ and it doesn't provide a user interface.
    
    Remember that if you do use a service, it still runs in your application's main thread by default, so you should still create a 
    new thread within the service if it performs intensive or blocking operations.
+   
+6. Creating a bound service
+   Extending the Binder class
+      If your service is private to your own application and runs in the same process as the client (which is common), 
+      you should create your interface by extending the Binder class and returning an instance of it from onBind().
+   Using a Messenger
+      
+   Using AIDL
+      
