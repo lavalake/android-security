@@ -24,3 +24,9 @@ Activity Creation
               appContext.init()
               appContext.setOuterContext(activity)
               activity.attach(appContext)
+ 
+ 1. new process folk Zygote process and inherite all the call stack. So ZygoteInit.main will capture the exception and clear the call
+ stack. Then run from the main of the ActivityThread
+    by doing this, we do not need call exec to run a new program. Because this will clear all the address space and lose all the library.
+ 
+ 2. MethodAndArgsCaller.run -> mMethod.invoke. here mMethod is the main of the ActivityThread
