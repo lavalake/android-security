@@ -6,6 +6,8 @@ synchronized(t1){
           t1.wait(0);
 }
 
+
+http://www.cnblogs.com/paddix/p/5381958.html
 sleep方法的作用是让当前线程暂停指定的时间（毫秒），sleep方法是最简单的方法，在上述的例子中也用到过，比较容易理解。唯一需要注意的是其与wait方法的区别。
 最简单的区别是，wait方法依赖于同步，而sleep方法可以直接调用。而更深层次的区别在于sleep方法只是暂时让出CPU的执行权，并不释放锁。而wait方法则需要释放锁。
 
