@@ -1,0 +1,12 @@
+join方法本身是通过wait方法来实现等待的
+原来在线程结束时，java虚拟机会执行该线程的本地exit方法，
+
+//线程退出函数：
+void JavaThread::exit(bool destroy_vm, ExitType exit_type) ｛
+...
+//这里会处理join相关的销毁逻辑
+ensure_join(this);
+...
+｝
+
+lock.notify_all(thread);
