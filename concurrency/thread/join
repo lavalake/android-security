@@ -10,3 +10,9 @@ ensure_join(this);
 ｝
 
 lock.notify_all(thread);
+
+join()方法本质上是通过wait()方法实现阻塞的
+如果子线程没有启动或者子线程执行结束，主线程不用等待可以继续执行
+
+当main线程调用t.join时候，main线程会获得线程对象t的锁（wait 意味着拿到该对象的锁),调用该对象的wait(等待时间)，直到该对象唤醒main线程 ，
+比如退出后。这就意味着main 线程调用t.join时，必须能够拿到线程t对象的锁
