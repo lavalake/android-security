@@ -1,0 +1,6 @@
+1. synchronized
+2. wait/notify
+3. sleep/yield/join
+4. currentThread/this
+5. thread exception
+6. isAlive
