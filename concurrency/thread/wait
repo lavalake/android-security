@@ -85,4 +85,10 @@ Wait end-----
 其他线程是不能进入的。而wait方法则不同，当调用wait方法后，当前线程会释放持有的monitor对象锁，因此，其他线程还可以进入到同步方法，线程被唤醒后，
 需要竞争锁，获取到锁之后再继续执行。
 
+四、总结
 
+　　本文主要详细讲解了wait/notify/notifyAll和sleep/yield/join方法。最后回答一下上面提出的问题：
+  wait/notify/notifyAll方法的作用是实现线程间的协作，那为什么这三个方法不是位于Thread类中，而是位于Object类中？位于Object中，
+  也就相当于所有类都包含这三个方法（因为Java中所有的类都继承自Object类）。要回答这个问题，还是得回过来看wait方法的实现原理，大家需要明白的是，
+  wait等待的到底是什么东西？如果对上面内容理解的比较好的话，我相信大家应该很容易知道wait等待其实是对象monitor，由于Java中的每一个对象都有一个
+  内置的monitor对象，自然所有的类都理应有wait/notify方法。
