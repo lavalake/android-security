@@ -1,0 +1,7 @@
+https://www.jianshu.com/p/2195c70e8701
+我们知道，wait()方法属于java.lang.Object 类，调用线程必须获得对象锁才能调用wait()方法，而join方法又是synchronized方法，也就是说当前线程（main）
+在调用t1.join()方法时，获得到了t1的对象锁，这段逻辑类似如下代码
+synchronized(t1){
+    while(t1.isAlive())
+          t1.wait(0);
+}
