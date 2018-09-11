@@ -164,3 +164,24 @@ try {
 }
 
  
+ 
+ 作者：知乎用户
+链接：https://www.zhihu.com/question/50870223/answer/145177436
+来源：知乎
+著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
+
+1)java 6 及以后，完成同样的功能，一般来说Lock及Condition 性能上没有优势; 
+2)Lock  接口的 lockInterruptibly() 及带参数的tryLock方法可以响应interrupt(),而进入synchronized块或方法时排队的线程不能响应interrupt()
+Lock接口获取锁时可以设置超时时间，可以polled的方式用轮询，在某些需要获取多个对象锁的情况下，可以更容易地编写代码避免deadlock的发生 
+Lock接口可以实现非块状结构的锁，比如LinkedList每个node的锁的情况 ReentrantLock 可以实现公平锁，即在等待锁的队列上FIFO。
+而synchronized 无法实现公平锁，事实上，非公平锁的效率更高Condition接口支持 在condition queue上等待的线程 设置为fair或unfair,
+当且仅当Lock是fair的，它生成的Codition对象才是fair的synchronized 块或方法对于一个对象只有一个condition queue,这样如果在这个queue上如果有多
+个condition predicate, 比如isFull(),isEmpty() , 就必须用notfiyAll()方法， 会有context switch及获取锁的性能损失。
+而Lock 可以生成多个Condition 对象，就可以使用更高效的 single notification.而synchronized的优势是用起来更简单，自动释放锁。
+便于处理各种Exceptions
+3)关于 signalAll（notifyAll）以后 ，我的理解是所有在condition queue上等待的线程都会被唤醒，
+它们会进入等待相关Object lock 的队列， 唤醒的线程相比普通获取锁的线程没有任何优先权，这时我理解它们处于Blocked 状态，而不是Runnable 的状态。
+直到某个线程获得了锁，只有它一个线程会进入Runnable状态 ，其余仍在Blocked状态的队列中等待锁。    
+关于竟争机制，上面也介绍了，synchronized块或方法 是非公平的， 如果notifyAll后，释放了锁，恰好有一个处于Runnable状态的线程刚好需要这个锁，
+它便可能会插队。    而ReentrantLock可以设置为公平锁，（ReentrantLock(boolean fair)） ， 这时便会按顺序排队。默认情况下，它也是非公平的
+4）以上为个人理解，如有不恰当之处，还望各位高手指正。
