@@ -1,0 +1,166 @@
+https://my.oschina.net/u/174366/blog/608509
+Object 类中 wait，notify 与 notifyAll 方法可以用来实现线程之间的调度，比如在阻塞队列（BlockingQueue）的实现中，如果队列为空，则所有消费者线程进行阻塞 ( wait )，如果某一个时刻队列中新添加了一个元素，则需要唤醒某个或所有阻塞状态的消费者线程( notify,notifyAll )，同理如果是队列已满，则所有生产者线程都需要阻塞，等到某个元素被消费之后又需要唤醒某个或所有正在阻塞的生产者线程
+
+Condition 的 await，signal, singalAll 与 Object 的 wait, notify, notifyAll 都可以实现的需求，两者在使用上也是非常类似，都需要先获取某个锁之后才能调用，而不同的是 Object wait,notify 对应的是 synchronized 方式的锁，Condition await，singal 则对应的是 ReentrantLock （实现 Lock 接口的锁对象）对应的锁
+
+来看下面具体的示例：使用 wait, notify 和 await, signal 方式分别实现一个简单的队列
+
+public interface SimpleQueueDemo<E> {	
+	void put(E e);
+	
+	E take();
+}
+基于 Object wait, notify 的实现
+
+public class SynchronizedQueue<E> implements SimpleQueueDemo<E> {
+	
+	private Object[] array;
+	private int index = 0;
+	
+	public SynchronizedQueue(int size) {
+		array = new Object[size];
+	}
+	
+	@Override
+	public synchronized void put(E item) {
+		while(isFull()) {
+			try {
+				this.wait();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		array[index++] = item;
+		
+		this.notifyAll();
+	}
+	
+	@Override
+	@SuppressWarnings("unchecked")
+	public synchronized E take() {
+		while(isEmpty()) {
+			try {
+				this.wait();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		E item = (E) array[0];
+		array = Arrays.copyOfRange(array, 1, array.length + 1);
+		array[array.length - 1] = null;
+		index--;
+		
+		this.notifyAll();
+		return item;
+	}
+	
+	private boolean isFull() {
+		return index >= array.length;
+	}
+	
+	private boolean isEmpty() {
+		return index <= 0;
+	}
+
+}
+基于 await, signal 的实现
+
+public class ConditionQueue<E> implements SimpleQueueDemo<E> {
+
+	private Object[] array;
+	private int index = 0;
+	
+	private static ReentrantLock lock = new ReentrantLock();
+	
+	private static Condition notEmpty = lock.newCondition();
+	private static Condition notFull = lock.newCondition();
+	
+	public ConditionQueue(int size) {
+		this.array = new Object[size];
+	}
+	
+	@Override
+	public void put(E item) {
+		lock.lock();
+		try {
+			while(isFull()) {
+				notFull.await();
+			}
+			
+			array[index++] = item;
+			
+			notEmpty.signal();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} finally {
+			lock.unlock();
+		}
+	}
+	
+	@Override
+	@SuppressWarnings("unchecked")
+	public E take() {
+		lock.lock();
+		try {
+			while(isEmpty()) {
+				notEmpty.await();
+			}
+			
+			E item = (E) array[0];
+			array = Arrays.copyOfRange(array, 1, array.length + 1);
+			array[array.length - 1] = null;
+			index--;
+			
+			notFull.signal();
+			return item;
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} finally {
+			lock.unlock();
+		}
+		return null;
+	}
+	
+	private boolean isFull() {
+		return index >= array.length;
+	}
+	
+	private boolean isEmpty() {
+		return index <= 0;
+	}
+
+}
+两者在使用形式和实现的功能上都非常的类似，但这里面有一个最大的问题就是 synchronized 方式对应的 wait, notify 不能有多个谓词条件，Lock 对应的 Condition await, signal 则可以有多个谓词条件
+
+private static ReentrantLock lock = new ReentrantLock();
+	
+private static Condition notEmpty = lock.newCondition();
+private static Condition notFull = lock.newCondition();
+没有多个谓词条件带来的问题在于
+
+例如队列已满，所有的生产者现场阻塞，某个时刻消费者消费了一个元素，则需要唤醒某个生产者线程，而通过 Object notify 方式唤醒的线程不能确保一定就是一个生产者线程，因为 notify 是随机唤醒某一个正在该 synchronized 对应的锁上面通过 wait 方式阻塞的线程，如果这时正好还有消费者线程也在阻塞中，则很可能唤醒的是一个消费者线程；signalAll 更是会唤醒所有在对应锁上通过 wait 方式阻塞的线程，而不管是生产者还是消费者线程。
+
+与之不同的 Condition await, signal 方式则可以对应多个谓词条件（notEmpty, notFull），可以很方便的实现让生产者线程和消费者线程分别在不同的谓词条件上进行等待
+
+本例中所有的生产者线程在 notEmpty 谓词条件上等待，所有的消费者线程在 notFull 谓词条件上等待，当队列是满的时候所有的生产者线程阻塞，添加元素之后则唤醒某个消费者线程，此时则不用担心会唤醒消费者线程
+
+lock.lock();
+try {
+	while(isFull()) {
+		// 生产者线程进行阻塞
+		notFull.await();
+	}
+	
+	array[index++] = item;
+	
+	// 唤醒某个消费者线程
+	notEmpty.signal();
+} catch (InterruptedException e) {
+	e.printStackTrace();
+} finally {
+	lock.unlock();
+}
+
+ 
