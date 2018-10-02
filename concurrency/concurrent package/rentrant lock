@@ -1,2 +1,10 @@
 https://www.ibm.com/developerworks/java/library/j-jtp10264/
 More flexible, scalable locking in JDK 5.0
+
+Extended capabilities of reentrant lock include :-
+
+The ability to have more than one condition variable per monitor. Monitors that use the synchronized keyword can only have one. This means reentrant locks support more than one wait()/notify() queue.
+The ability to make the lock "fair". "[fair] locks favor granting access to the longest-waiting thread. Otherwise this lock does not guarantee any particular access order." Synchronized blocks are unfair.
+The ability to check if the lock is being held.
+The ability to get the list of threads waiting on the lock.
+
