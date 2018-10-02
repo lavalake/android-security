@@ -1,0 +1,14 @@
+one lock can have multiple condition. Condition work as sepearate wake up queue for one lock.
+
+To specifically address why having multiple waitsets is an advantage:
+
+With wait/notify if there are different things that threads are waiting for (the common example is a fixed size blocking queue, with some threads putting things in the queue and blocking when the queue is full, and other threads taking from the queue and blocking when the queue is empty) then if you use notify, causing the scheduler to pick one thread from the wait set to notify, you can have corner cases where the chosen thread isn't interested in being notified for a particular situation. For instance the queue will notify for adding something to the queue, but if the chosen thread is a producer and the queue is full then it can't act on that notification, which you would rather have gone to a consumer. With intrinsic locking you have to use notifyAll in order to make sure that notifications don't get lost.
+
+But notifyAll incurs churn with every call, where every thread wakes up and contends for the lock, but only one can make progress. The other threads all bump around contending for the lock until, one at a time, they can acquire the lock and most likely go back to waiting. It generates a lot of contention for not much benefit, it would be preferable to be able to use notify and know only one thread is notified, where the notification is relevant to that thread.
+
+This is where having separate Conditions to wait on is a big improvement. The queue can invoke signal on a condition and know it will wake up only one thread, where that thread is specifically waiting for the condition.
+
+The API doc for Condition has a code example that shows using multiple conditions for a bounded buffer, it says:
+
+We would like to keep waiting put threads and take threads in separate wait-sets so that we can use the optimization of only notifying a single thread at a time when items or spaces become available in the buffer.
+
