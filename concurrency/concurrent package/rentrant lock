@@ -8,3 +8,8 @@ The ability to make the lock "fair". "[fair] locks favor granting access to the 
 The ability to check if the lock is being held.
 The ability to get the list of threads waiting on the lock.
 
+Disadvantages of reentrant locks are :-
+
+Need to add import statement. Need to wrap lock acquisitions in a try/finally block. This makes it more ugly than the 
+synchronized keyword. The synchronized keyword can be put in method definitions which avoids the need for a block which 
+reduces nesting.
