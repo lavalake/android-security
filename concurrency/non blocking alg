@@ -2,3 +2,9 @@ http://tutorials.jenkov.com/java-concurrency/non-blocking-algorithms.html
 volatile:
   volatile guarantee the read and write will work direclty on the main memory not local cache or registers. On multiple CPU,
   thread can read the updated value from main memory. So if there is only one writer and multiple reader, you can use volatile.
+  
+  The race conditions occur when multiple threads perform a read-update-write sequence of operations on a shared variable. 
+  If you only have one thread perform a read-update-write sequence of operations, and all other threads only perform a read 
+  operation, you have no race conditions.
+
+
