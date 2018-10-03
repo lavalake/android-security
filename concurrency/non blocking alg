@@ -13,4 +13,8 @@ The code shown in the previous section is called optimistic locking. Optimistic 
 sometimes also called pessimistic locking. Traditional locking blocks the access to the shared memory with a synchronized block
 or a lock of some kind. A synchronized block or lock may result in threads being suspended.
 
+Optimistic locking tends to work best with low to medium contention on the shared memory. If the content is very high on the 
+shared memory, threads will waste a lot of CPU cycles copying and modifying the shared memory only to fail writing the changes
+back to the shared memory. But, if you have a lot of content on shared memory, you should anyways consider redesigning your 
+code to lower the contention.
 
