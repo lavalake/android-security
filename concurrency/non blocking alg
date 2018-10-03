@@ -18,3 +18,10 @@ shared memory, threads will waste a lot of CPU cycles copying and modifying the 
 back to the shared memory. But, if you have a lot of content on shared memory, you should anyways consider redesigning your 
 code to lower the contention.
 
+Sharing Intended Modifications
+Instead of copying and modifying the whole shared data structure, a thread can share its intended modification of the shared data structure. The process for a thread wanting to make a modification to the shared data structure then becomes:
+
+Check if another thread has submitted an intended modification to the data structure.
+If no other thread has submitted an intended modification, create an intended modification (represented by an object) and submit that intended modification to the data structure (using a compare-and-swap operation).
+Carry out the modification of the shared data structure.
+Remove the reference to the intended modification to signal to other threads that the intended modification has been carried out.
