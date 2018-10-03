@@ -6,5 +6,11 @@ volatile:
   The race conditions occur when multiple threads perform a read-update-write sequence of operations on a shared variable. 
   If you only have one thread perform a read-update-write sequence of operations, and all other threads only perform a read 
   operation, you have no race conditions.
+  
+  Why is it Called Optimistic Locking?
+
+The code shown in the previous section is called optimistic locking. Optimistic locking is different from traditional locking, 
+sometimes also called pessimistic locking. Traditional locking blocks the access to the shared memory with a synchronized block
+or a lock of some kind. A synchronized block or lock may result in threads being suspended.
 
 
