@@ -1,0 +1,20 @@
+The A-B-A Problem
+The above illustrated algorithm can suffer from the A-B-A problem. The A-B-A problem refers to the situation where
+a variable is changed from A to B and then back to A again. For another thread it is thus not possible to detect that
+the variable was indeed changed.
+If thread A checks for ongoing updates, copies data and is suspended by the thread scheduler, a thread B may be
+able to access the shared data structure in the meanwhile. If thread B performs a full update of the data structure,
+and removes its intended modification, it will look to thread A as if no modification has taken place since it copied the
+data structure. However, a modification did take place. When thread A continues to perform its update based on its
+now out-of-date copy of the data structure, the data structure will have thread B's modification undone.
+The following diagram illustrates A-B-A problem from the above situation
+
+A-B-A Solutions
+A common solution to the A-B-A problem is to not just swap a pointer to an intended modification object, but to
+combine the pointer with a counter, and swap pointer + counter using a single compare-and-swap operation. This is
+possible in languages that support pointers like C and C++. Thus, even if the current modification pointer is set back
+to point to "no ongoing modification", the counter part of the pointer + counter will have been incremented, making
+the update visible to other threads.
+In Java you cannot merge a reference and a counter together into a single variable. Instead Java provides the
+AtomicStampedReference class which can swap a reference and a stamp atomically using a compare-and-swap
+operation.
