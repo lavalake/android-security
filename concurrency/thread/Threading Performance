@@ -2,3 +2,14 @@ https://developer.android.com/topic/performance/threads.html
 Persisting threads
 Threads persist past the lifetime of the activities that spawn them. Threads continue to execute, uninterrupted, 
 regardless of the creation or destruction of activities. In some cases, this persistence is desirable.
+
+The main thread has a very simple design: Its only job is to take and execute blocks of work from a thread-safe 
+work queue until its app is terminated
+
+ If the main thread cannot finish executing blocks of work within 16ms, the user may observe hitching, lagging, 
+ or a lack of UI responsiveness to input. If the main thread blocks for approximately five seconds, the system displays
+ the Application Not Responding (ANR) dialog, allowing the user to close the app directly.
+ 
+ By design, Android View objects are not thread-safe. An app is expected to create, use, and destroy UI objects, 
+ all on the main thread. If you try to modify or even reference a UI object in a thread other than the main thread, 
+ the result can be exceptions, silent failures, crashes, and other undefined misbehavior.
