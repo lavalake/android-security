@@ -13,3 +13,11 @@ work queue until its app is terminated
  By design, Android View objects are not thread-safe. An app is expected to create, use, and destroy UI objects, 
  all on the main thread. If you try to modify or even reference a UI object in a thread other than the main thread, 
  the result can be exceptions, silent failures, crashes, and other undefined misbehavior.
+
+Explicit references
+In another example, View objects contain references to the activity that owns them. If that activity is destroyed, 
+but there remains a threaded block of work that references it—directly or indirectly—the garbage collector will not 
+collect the activity until that block of work finishes executing.
+
+This scenario can cause a problem in situations where threaded work may be in flight while some activity lifecycle event, 
+such as a screen rotation, occurs. The system wouldn’t be able to perform garbage collection until the in-flight work completes. As a result, there may be two Activity objects in memory until garbage collection can take place.
