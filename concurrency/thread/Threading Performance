@@ -24,3 +24,25 @@ such as a screen rotation, occurs. The system wouldn’t be able to perform garb
 As a result, there may be two Activity objects in memory until garbage collection can take place.
 
 With scenarios like these, we suggest that your app not include explicit references to UI objects in threaded work tasks. 
+Avoiding such references helps you avoid these types of memory leaks, while also steering clear of threading contention.
+
+In all cases, your app should only update UI objects on the main thread
+
+Implicit references
+
+A common code-design flaw with threaded objects can be seen in the snippet of code below:
+The flaw in this snippet is that the code declares the threading object MyAsyncTask as a non-static inner class of some 
+activity (or an inner class in Kotlin). This declaration creates an implicit reference to the enclosing Activity instance. 
+As a result, the object contains a reference to the activity until the threaded work completes, causing a delay in the 
+destruction of the referenced activity. This delay, in turn, puts more pressure on memory.
+
+Generally, threads in the foreground group get about 95% of the total execution time from the device, while the background group gets roughly 5%.
+
+The AsyncTask class
+
+The AsyncTask class is a simple, useful primitive for apps that need to quickly move work from the main thread onto worker 
+threads
+
+When using AsyncTask, there are a few important performance aspects to keep in mind. First, by default, an app pushes all of 
+the AsyncTask objects it creates into a single thread
+or this reason, we suggest that you only use AsyncTask to handle work items shorter than 5ms in duration.
