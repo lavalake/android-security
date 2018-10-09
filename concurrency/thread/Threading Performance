@@ -46,3 +46,9 @@ threads
 When using AsyncTask, there are a few important performance aspects to keep in mind. First, by default, an app pushes all of 
 the AsyncTask objects it creates into a single thread
 or this reason, we suggest that you only use AsyncTask to handle work items shorter than 5ms in duration.
+AsyncTask objects are also the most common offenders for implicit-reference issues.
+For example, an AsyncTask may require a reference to a UI object in order to update the UI object properly once AsyncTask 
+executes its callbacks on the main thread. In such a situation, you can use a WeakReference to store a reference to the 
+required UI object, and access the object once the AsyncTask is operating on the main thread. To be clear, holding a 
+WeakReference to an object does not make the object thread-safe; the WeakReference merely provides a method to handle 
+issues with explicit references and garbage collection.
