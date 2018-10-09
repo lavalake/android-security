@@ -20,4 +20,7 @@ but there remains a threaded block of work that references it—directly or indi
 collect the activity until that block of work finishes executing.
 
 This scenario can cause a problem in situations where threaded work may be in flight while some activity lifecycle event, 
-such as a screen rotation, occurs. The system wouldn’t be able to perform garbage collection until the in-flight work completes. As a result, there may be two Activity objects in memory until garbage collection can take place.
+such as a screen rotation, occurs. The system wouldn’t be able to perform garbage collection until the in-flight work completes.
+As a result, there may be two Activity objects in memory until garbage collection can take place.
+
+With scenarios like these, we suggest that your app not include explicit references to UI objects in threaded work tasks. 
