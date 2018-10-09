@@ -52,3 +52,17 @@ executes its callbacks on the main thread. In such a situation, you can use a We
 required UI object, and access the object once the AsyncTask is operating on the main thread. To be clear, holding a 
 WeakReference to an object does not make the object thread-safe; the WeakReference merely provides a method to handle 
 issues with explicit references and garbage collection.
+
+The HandlerThread class
+This is a situation where a handler thread would be appropriate: A handler thread is effectively a long-running thread that 
+grabs work from a queue, and operates on it. In this example, when your app delegates the Camera.open() command to a block 
+of work on the handler thread, the associated onPreviewFrame() callback lands on the handler thread, rather than the UI or 
+AsyncTask threads. So, if you’re going to be doing long-running work on the pixels, this may be a better solution for you.
+
+The ThreadPoolExecutor class
+
+There are certain types of work that can be reduced to highly parallel, distributed tasks. One such task, for example, 
+is calculating a filter for each 8x8 block of an 8 megapixel image
+Using the HandlerThread class, on the other hand, would require the programmer to manually manage load balancing between a group of threads
+ThreadPoolExecutor is a helper class to make this process easier.
+As workload increases or decreases, the class spins up or destroys more threads to adjust to the workload.
