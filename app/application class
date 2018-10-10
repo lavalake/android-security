@@ -1,0 +1,5 @@
+The representation of an executing application in Java is the android.app.Applica
+tion object, which is instantiated upon application start and destroyed when the ap‐
+plication stops (i.e., an instance of the Application class lasts for the lifetime of the
+Linux process of the application). When the process is terminated and restarted, a new
+Application instance is created
