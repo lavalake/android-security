@@ -1,0 +1,4 @@
+If you want to send message to worker thread, Your thread need to call 
+Looper.prepare()
+This method is static. It will create a Looper for your thread and store in ThreadLocal
+Then other thread could create a Handler(yourThread.getLoop()) and send message to thread
