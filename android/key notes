@@ -54,3 +54,5 @@
     Thus, sandboxes are created to isolate users. In Android, every
     application package has a unique user ID
     System app share the same user ID
+22. application lifecycle
+23. activity lifecycle
