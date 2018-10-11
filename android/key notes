@@ -17,6 +17,8 @@
     message are by default handled by the looper thread
     all underlying communication is still based on Binder
 7. Looper
+    Looper.prepare() is static method. It will generate ThreadLocal Looper object.
+    
 8. binder thread pool
     every app main thread will have a binder thread pool when the process created
 9. ActivityThread
