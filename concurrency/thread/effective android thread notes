@@ -7,3 +7,40 @@ in the stack determines the state of each Activity :
 • Paused and partly visible: C
 • Stopped and invisible: B
 • Inactive and destroyed: A
+
+
+Intrinsic Lock and Java Monitor
+The synchronized keyword operates on the intrinsic lock that is implicitly available in
+every Java object.
+
+The platform mainly has two ways of affecting the thread scheduling:
+Priority
+  Change the Linux thread priority.
+Control group
+  Change the Android-specific control group.
+
+The Linux kernel scheduler is known as a completely fair scheduler (CFS). It is “fair” in
+the sense that it tries to balance the execution of tasks not only based on the priority of
+the thread but also by tracking the amount of execution time
+  
+In Android, a Linux thread has niceness values in the
+range of -20 (most prioritized) to 19 (least prioritized)
+
+Control groups
+Android not only relies on the regular Linux CFS for thread scheduling, but also imposes
+thread control groups 4 on all threads.
+
+the most important ones for applications
+are the Foreground Group and Background Group. The Android platform defines ex‐
+ecution constraints so that the threads in the different control groups are allocated
+different amounts of execution time on the processor
+
+Threads in the Foreground Group
+are allocated a lot more execution time than threads in the Background Group, 5 and
+Android utilizes this to ensure that visible applications on the screen get more processor
+allocation than applications that are not visible on the screen
+
+Lowering the priority of a thread with Process.setThreadPriori
+ty(Process.THREAD_PRIORITY_BACKGROUND) will not only reduce the
+priority but also ensure that this thread is decoupled from the pro‐
+cess level of the application and always put in the Background Group
