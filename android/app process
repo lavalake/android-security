@@ -1,0 +1,6 @@
+In Android, every
+application package has a unique user ID
+What Android adds to each process is a runtime execution environment, such as the
+Dalvik virtual machine
+
+Lifecycle
