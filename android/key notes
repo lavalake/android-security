@@ -34,5 +34,11 @@
     ThreadPoolExecutor
     IntentService
     AsyncTask
+    thread priority
 14. messageQueue
 15. broadcastReceiver
+16. activity stack
+    process rank
+       
+17. task stack
+18.
