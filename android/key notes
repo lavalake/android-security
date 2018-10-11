@@ -41,4 +41,16 @@
     process rank
        
 17. task stack
-18.
+18. service
+    Started Service
+    Bound Service
+19 ContentProvider
+    commonly used in collaboration with SQLite databases, which are always
+    private to an application.
+20. BroadcastReceiver
+    statically registered in the AndroidManifest
+    dynamiclly registered
+21. Linux Process
+    Thus, sandboxes are created to isolate users. In Android, every
+    application package has a unique user ID
+    System app share the same user ID
