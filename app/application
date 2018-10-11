@@ -73,3 +73,10 @@ Empty
   A process without active components. Empty processes are kept around to improve
 startup times, but they are the first to be terminated when the system reclaims
 resources.
+Table 1-1. Process rank transitions
+Application state                            P1 process rank            P2 process rank
+P1 starts with BroadcastReceiver entry point    Foreground                    N/A
+P1 starts Activity                              Foreground                    N/A
+P1 starts Service entry point in P2             Foreground                 Foreground
+P1 Activity is destroyed                          Empty                     Service
+P2 Service is stopped                             Empty                      Empty
