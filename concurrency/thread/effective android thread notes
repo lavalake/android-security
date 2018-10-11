@@ -1,1 +1,9 @@
 
+holds an object reference to the view hierarchy with all the View instances. Hence, the memory footprint
+of an Activity can grow large.
+The position
+in the stack determines the state of each Activity :
+• Active in the foreground: D
+• Paused and partly visible: C
+• Stopped and invisible: B
+• Inactive and destroyed: A
