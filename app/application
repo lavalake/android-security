@@ -45,3 +45,31 @@ the system tries to shorten the startup time for Android applications by startin
 process called Zygote on system boot. Zygote has the entire set of core libraries preloa‐
 ded. New application processes are forked from the Zygote process without copying the
 core libraries, which are shared across all applications
+
+Application termination
+Because a user may request an application at any later time, the
+runtime avoids destroying all its resources until the number of live applications leads
+to an actual shortage of resources across the system
+Hence, an application isn’t auto‐
+matically terminated even when all of its components have been destroyed
+
+
+it’s up to the runtime to decide which process
+should be killed. To make this decision, the system imposes a ranking on each process
+depending on the application’s visibility and the components that are currently execut‐
+ing
+
+With the highest first, the process ranks are:
+Foreground
+  Application has a visible component in front, Service is bound to an Activity in
+front in a remote process, or BroadcastReceiver is running.
+Visible
+  Application has a visible component but is partly obscured.
+Service
+  Service is executing in the background and is not tied to a visible component.
+Background
+  A nonvisible Activity . This is the process level that contains most applications.
+Empty
+  A process without active components. Empty processes are kept around to improve
+startup times, but they are the first to be terminated when the system reclaims
+resources.
