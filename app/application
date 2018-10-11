@@ -1,0 +1,47 @@
+The representation of an executing application in Java is the android.app.Applica
+tion object, which is instantiated upon application start and destroyed when the ap‐
+plication stops (i.e., an instance of the Application class lasts for the lifetime of the
+Linux process of the application). When the process is terminated and restarted, a new
+Application instance is created
+
+Components
+Activity , Service , BroadcastReceiver , and ContentProvider
+The config‐uration and interaction of these components define the application’s behavior. These
+entities have different responsibilities and lifecycles, but they all represent application
+entry points, where the application can be started
+
+Explicit Intent
+Defines the fully classified name of the component, which is known within the
+application at compile time
+Implicit Intent
+A runtime binding to a component that has defined a set of characteristics in an
+IntentFilter . If the Intent matches the characteristics of a component’s Intent
+Filter , the component can be started
+
+Lifecycle
+applications and processes have a one-to-one relationship
+The application lifecycle is encapsulated within its Linux process, which, in Java, maps
+to the android.app.Application class
+
+The Application object for each app starts
+when the runtime calls its onCreate() method. Ideally, the app terminates with a call
+by the runtime to its onTerminate() , but an application cannot rely upon this. The
+underlying Linux process may have been killed before the runtime had a chance to call
+onTerminate() . The Application object is the first component to be instantiated in a
+process and the last to be destroyed.
+
+An application is started when one of its components is initiated for execution. Any
+component can be the entry point for the application, and once the first component is
+triggered to start, a Linux process is started
+
+1. Start Linux process.
+2. Create runtime.
+3. Create Application instance.
+4. Create the entry point component for the application.
+
+Setting up a new Linux process and the runtime is not an instantaneous operation. It
+can degrade performance and have a noticeable impact on the user experience. Thus,
+the system tries to shorten the startup time for Android applications by starting a special
+process called Zygote on system boot. Zygote has the entire set of core libraries preloa‐
+ded. New application processes are forked from the Zygote process without copying the
+core libraries, which are shared across all applications
