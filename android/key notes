@@ -96,3 +96,10 @@
     GC root: thread, static, local variable on stack
     Thread execution could be memory leak source
     Handler could be memory leak source
+    Message could be memory leak. Hold reference to Hanlder.
+33. Avoiding Memory Leaks
+    Use Static Inner Class
+    Use Weak Reference
+    Stop Worker Thread Execution
+    Retain Worker Threads
+    Clean Up the Message Queue
