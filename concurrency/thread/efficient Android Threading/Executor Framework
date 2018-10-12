@@ -1,0 +1,35 @@
+The Executor does not execute any tasks by itself—it is merely an interface—so your implementations provide
+the actual execution and define how tasks will be executed
+Thread Pools
+  A thread pool is the combination of a task queue and a set of worker threads that forms
+  a producer-consumer setup
+  
+  There are several advantages with thread pools over executing every task on a new thread
+  (thread-per-task pattern):
+    • The worker threads can be kept alive to wait for new tasks to execute. This means
+    that threads don’t have to be created and destroyed for every task, which compro‐
+    mises performance.
+    • The thread pool is defined with a maximum number of threads so that the platform
+    isn’t overloaded with background threads—that consume application memory—
+    due to many background tasks.
+    • The lifecycle of all worker threads are controlled by the thread-pool lifecycle.
+  
+  
+  ExecutorCompletionService
+    A thread pool manages a task queue and the worker threads, but does not manage the
+    results of the finished task. That is done by the ExecutorCompletionService . It holds
+    a completion queue (based on a BlockingQueue ) of finished tasks, as shown in
+    Figure 9-3. When a task finishes, a Future object is placed in the queue, which is available
+    to consumer threads so they can process the results in the order that the tasks have
+    finished.
+    Displaying multiple downloaded images in an Activity is a common use case. The UI
+    is populated asynchronously, and a downloaded image should be displayed as soon as
+    it is available, independently of the other image downloads. This is a job that fits well
+    with an ExecutorCompletionService , because downladed images can be put in the
+    completion queue and processed as soon as they are available.
+    
+    The following example illustrates the use of an ExecutorCompletionService to display
+    downloaded images in an Activity . The image download is done with a dynamic sized
+    thread pool of worker threads, when the Activity is created. The downloaded images
+    are held in the completion queue and processed by a consumer thread
+    
