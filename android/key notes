@@ -103,3 +103,8 @@
     Stop Worker Thread Execution
     Retain Worker Threads
     Clean Up the Message Queue
+34. HandlerThread
+    onLooperPrepared
+    IdleHandler
+    Define handler inside HandlerThread. avoild leak the looper.
+    User HandlerThread to persist data to sharedPreference
