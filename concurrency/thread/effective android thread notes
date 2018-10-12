@@ -51,3 +51,10 @@ Binders also support asynchronous transactions, which you can specify by setting
 der.FLAG_ONEWAY . With that flag set, the client thread will call transact and return
 immediately. A binder will continue calling onTransact on the binder thread in the
 server process, but cannot return any data synchronously to the client thread
+
+Messenger
+If the threads execute in different pro‐
+cesses, they do not have any common memory for sharing messages; instead, the mes‐
+sages have to be passed across process boundaries, using the binder framework. For this
+purpose, you can use the android.os.Messenger class to send messages to a dedicated
+Handler in a remote process
