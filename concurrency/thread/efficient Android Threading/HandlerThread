@@ -1,0 +1,33 @@
+HandlerThread is a thread with a message queue that incorporates a Thread , a Looper ,
+and a MessageQueue
+There is only one queue to store messages, so execution is guaranteed to be sequential
+—and therefore thread safe—but with potentially low throughput, because tasks can be
+delayed in the queue
+The platform solves the race condition problem by
+making handlerThread.getLooper() a blocking call until the HandlerThread is ready
+to receive messages
+The HandlerThread sets up the Looper internally and prepares the thread for receiving
+messages. The internal setup gurantees that there is no race condition between creating
+the Looper and sending messages, which can occur in the manual setup
+/**
+70     * This method returns the Looper associated with this thread. If this thread not been started
+71     * or for any reason isAlive() returns false, this method will return null. If this thread
+72     * has been started, this method will block until the looper has been initialized.
+73     * @return The looper.
+74     */
+public Looper getLooper() {
+76        if (!isAlive()) {
+77            return null;
+78        }
+79
+80        // If the thread has been started, wait until the looper has been created.
+81        synchronized (this) {
+82            while (isAlive() && mLooper == null) {
+83                try {
+84                    wait();
+85                } catch (InterruptedException e) {
+86                }
+87            }
+88        }
+89        return mLooper;
+90    }
