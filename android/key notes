@@ -79,3 +79,5 @@
     Control groups
         Foreground/Background
 27. runOnUiThread
+28. UI click event
+    go through ActitityThread -> Looper -> handler
