@@ -81,3 +81,6 @@
 27. runOnUiThread
 28. UI click event
     go through ActitityThread -> Looper -> handler
+29. asynchronous RPC
+    usually binder RPC is synchronous. Calling party will block. We can use a call back passed by client. 
+    to implement asynchronous RPC. Refer KeyChain.alias
