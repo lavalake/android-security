@@ -1,0 +1,35 @@
+it is invoked from both the producer and consumer thread
+typically used for:
+• Creating messages
+• Inserting messages into the queue
+• Processing messages on the consumer thread
+• Managing messages in the queue
+
+The message obtained from a Handler is retrieved from the message pool and implicitly
+connected to the Handler instance that requested it
+So A thread can have multiple handlers; messages from them coexist in the queue but are
+dispatched to the correct Handler instance
+
+If it is called outside the UI thread, the message is inserted in the queue. The runOnUiThread
+method can only be executed from an Activity instance, but the same be‐
+havior can be implemented by tracking the ID of the UI thread, for example, with a
+convenience method customRunOnUiThread in an Application subclass. The custom
+RunOnUiThread inserts a message in the queue like the following example:
+public class EatApplication extends Application {
+private long mUiThreadId;
+private Handler mUiHandler;
+@Override
+public void onCreate() {
+super.onCreate();
+mUiThreadId = Thread.currentThread().getId();
+mUiHandler = new Handler();
+}
+public void customRunOnUiThread(Runnable action) {
+if (Thread.currentThread().getId() != mUiThreadId) {
+mUiHandler.post(action);
+} else {
+action.run();
+}
+}
+}
+Summ
