@@ -39,3 +39,22 @@ continue to execute in the background even after the component is destroyed
 Automatically started threads pose a higher memory leakage risk than
 user started threads, as configuration changes and user navigation can
 yield many concurrent threads with Activity object references
+
+*****************************************************
+Thread Communication P116
+Thread execution is a potential source for memory leaks, and so is the message passing
+mechanism between threads
+Most of these objects are referenced only
+from the producer thread and therefore can be garbage collected when it exits, but
+Handler is a candidate for memory leaks because it is referenced from the consumer
+thread through a chain of objects
+Thread->Looper->Message Queue->Message->Handler
+While the consumer thread executes, all the direct or indirect referenced objects are still
+reachable from a GC root and are ineligible for garbage collection. The Message in‐
+stance, passed between the threads, holds references to a Handler and either to data
+( Object ) or to a task ( Runnable ) (refer to Table 4-2). From the creation through the
+recycling of a Message , it holds a Handler reference to the consumer thread. While the
+message is pending in the message queue or executed on the thread, it is ineligible for
+garbage collection. Furthermore, the Handler and the Object or Runnable , together
+with all their implicit and explicit references, are still reachable from the GC root
+******************************************************
