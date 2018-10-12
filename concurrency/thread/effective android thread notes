@@ -44,3 +44,10 @@ Lowering the priority of a thread with Process.setThreadPriori
 ty(Process.THREAD_PRIORITY_BACKGROUND) will not only reduce the
 priority but also ensure that this thread is decoupled from the pro‐
 cess level of the application and always put in the Background Group
+
+
+asynchronous RPC
+Binders also support asynchronous transactions, which you can specify by setting IBin
+der.FLAG_ONEWAY . With that flag set, the client thread will call transact and return
+immediately. A binder will continue calling onTransact on the binder thread in the
+server process, but cannot return any data synchronously to the client thread
