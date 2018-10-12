@@ -1,0 +1,54 @@
+Thread LifeCycle
+  New
+  Runnable
+  Waiting
+  Terminated
+
+Interruptions
+  Occasionally, an application wants to terminate the thread’s execution before it has
+  finished its task. For instance, if a thread is taking a long time to download a video and
+  the user presses a button to cancel the download, the UI thread captures the button
+  press and would like to terminate the downloading thread. There is, however, no way
+  a thread can be directly terminated. Instead, threads can be interrupted, which is a
+  request to the thread that is should terminate, but it is the thread itself that determines
+  whether to oblige or not. Interruptions are invoked on the thread reference:
+    Thread t = new SimpleThread();
+    t.start(); // Start the thread
+    t.interrupt(); // Request interruption
+  The interrupt flag is also supported by most blocking methods and libraries; a thread
+  that is currently blocked will throw an InterruptedException upon being interrupted.
+
+Handling InterruptedException
+  When an InterruptedException is thrown, the interrupted flag
+  is reset—for example, isInterrupted will return false even though the thread has been
+  interrupted. This may lead to problems further up in the thread callstack because no
+  one will know that the thread has been interrupted. So if the thread doesn’t have to
+  perform any cleanup upon interruption, the thread should pass the InterruptedExcep
+  tion further up in the callstack. If cleanup is required, it should be done in the catch-
+  clause, after which the thread should interrupt itself again so that callers of the executed
+  method are aware of the interruption, as shown in the following example:
+  void myMethod() {
+    try {
+    // Some blocking call
+    } catch (InterruptedException e) {
+    // 1. Clean up
+    // 2. Interrupt again
+    Thread.currentThread().interrupt();
+    }
+  }
+  
+Unhandled Exceptions on the UI Thread
+  The Android runtime attaches a process global UncaughtExceptionHandler when an
+  application is started. 1 Thus, the exception handler is attached to all threads in the ap‐
+  plication, and it treats unhandled exceptions equally for all threads: the process is killed.
+
+Thread Management
+  Each application is responsible for the threads it uses and how they are managed. An
+  application should decide on the number of threads to use, how to reuse them, when
+  to interrupt them, and if they should be retained during a rotation change.
+  You can implement these qualities throughout the lifecycle of the thread, particularly
+  at three phases: definition and start, retention, and cancellation.
+  
+Definition and Start
+  We will now look into the most common ways of defining and starting
+  worker threads on Android and observe the implications of each one
