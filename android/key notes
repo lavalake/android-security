@@ -87,3 +87,7 @@
 30 Messenger
     we can use handler to communicate with thread in same process
     for communication between threads in different process
+31. memory leak
+    GC root: thread, static, local variable on stack
+    Thread execution could be memory leak source
+    Handler could be memory leak source
