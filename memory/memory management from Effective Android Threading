@@ -25,3 +25,17 @@ defined in a static inner class therefore keep references to the class of the ou
 but not to the outer object itself
 If you create a new Runnable as an inner
 class, it will hold a reference to the outer class during the execution, even if it is run by a static inner class
+
+The lifecycle mismatch
+A fundamental reason for leakage on Android is the lifecycle mismatch between components, objects, and threads
+Leaking Activity objects is the most serious—and probably the most common—component leak
+An Activity holds references, for instance, to the view hierarchy that may contain a lot of heap allocations
+
+multiple Activity objects for the same Activity component can coexist on the heap
+
+Worker threads may impose a memory leak in the application, because threads can
+continue to execute in the background even after the component is destroyed
+
+Automatically started threads pose a higher memory leakage risk than
+user started threads, as configuration changes and user navigation can
+yield many concurrent threads with Activity object references
