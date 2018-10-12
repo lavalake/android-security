@@ -52,3 +52,30 @@ Thread Management
 Definition and Start
   We will now look into the most common ways of defining and starting
   worker threads on Android and observe the implications of each one
+Retention
+  Once a thread is started,
+  it will execute until either its run method finishes or the whole application process
+  terminates. Therefore, the thread lifetime can outlive the component lifetime
+  When the thread finishes, it may have produced a result that was meant to be used by
+  the component, but there is no receiver available. Typically, this situation occurs on
+  configuration changes in Activity components. The default behavior is to restart the
+  component when its configuration has changed, meaning that the original Activity
+  object is replaced by a new one without any knowledge of the executing background
+  thread. 2 Only the Activity object that started the thread knows that the thread was
+  started, so the new Activity cannot utilize the thread’s result; it has to restart the thread
+  over again to collect the data.
+  
+*Retaining a thread in an Activity*
+  The Activity class contains two methods for handling thread retention
+  public Object onRetainNonConfigurationInstance()
+    Called by the platform before a configuration change occurs
+  public Object getLastNonConfigurationInstance()
+    Called in the new Activity object to retrieve the retained object returned in onRe
+    tainNonConfigurationInstance() after a configuration change has been made
+    
+Retaining a thread in a Fragment
+  The Fragment can be added to an Activity just to handle thread retention, without containing any UI elements. In a
+  Fragment , all that is required to retain a thread, or any other state, is to call setRetai
+  nInstance(true) in Fragment.onCreate() . The Fragment is then retained during a
+  configuration change. The actual Fragment lifecycle is changed so that it does not get
+  destroyed during configuration changes
