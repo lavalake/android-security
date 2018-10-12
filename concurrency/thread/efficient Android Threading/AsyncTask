@@ -1,0 +1,106 @@
+you want to
+execute a task in the background and deliver a result back to the UI thread, Asyn
+cTask shines; it is all about handling the flow of preparing the UI before executing a
+long task, executing the task, reporting progress of the task, and finally returning the
+result.
+ AsyncTasks should ideally be
+61 * used for short operations (a few seconds at the most.) If you need to keep threads
+62 * running for long periods of time, it is highly recommended you use the various APIs
+63 * provided by the <code>java.util.concurrent</code> pacakge such as {@link java.util.concurrent.Executor},
+64 * {@link java.util.concurrent.ThreadPoolExecutor} and {@link java.util.concurrent.FutureTask}.
+
+*Creation and Start*
+  Actually, the first created AsyncTask in the application process controls the callback
+  threads for all consecutive AsyncTask implementations in the application
+  The callback thread is set only once per application lifetime. Starting with Jelly Bean, an AsyncTask
+  is class-loaded at application start on the UI thread, so that the callbacks are guaranteed
+  to occur on the UI thread.
+  
+  The execute method should be called from the UI thread; otherwise, the onPreExe
+  cute callback will not occur on the UI thread
+  
+*Avoid memory leaks*
+  As long as the worker thread is alive, all of its referenced objects are held in memory,
+  as explained in “Thread-Related Memory Leaks” on page 91. The AsyncTask should
+  therefore be declared as a standalone or static inner class so that the worker thread
+  avoids implicit references to outer classes.
+  
+*Coupling with a Context and its lifecycle*
+  An AsyncTask usually issues updates to the UI thread that may reference the Con
+  text , typically an Activity with a view hierarchy. But you should avoid referencing
+  the view hierarchy so that the views won’t be kept in memory when they are not
+  needed. Hence, the AsyncTask should be declared as a static inner class that holds
+  a reference to the associated Context . The reference is removed by setting it to null
+  when it is not needed anymore
+  
+The Executor argument executeOnExecutor can be one of the following execution
+environments:
+  AsyncTask.THREAD_POOL_EXECUTOR
+    Tasks are processed concurrently in a pool of threads. In KitKat, the thread pool
+    sizing is based on the number of available CPU cores: N+1 core threads and a
+    maximum of 2*N+1 threads, and the work queue can hold 128 tasks. Hence, a device
+    with four available cores can hold a maximum of 137 tasks.
+AsyncTask.SERIAL_EXECUTOR
+    A sequential task scheduler that ensures thread-safe task execution. It contains no
+    threads of its own, relying instead on THREAD_POOL_EXECUTOR for execution. It
+    stores the tasks in an unbounded queue and passes each one to the THREAD_POOL_EX
+    ECUTOR to be executed in sequence. The tasks can be executed in different threads
+    of the thread pool, but the SERIAL_EXECUTOR guarantees that consecutive tasks are
+    not added to the thread pool until the previous task has finished, so thread safety
+    is preserved.
+      private static class SerialExecutor implements Executor {
+249        final ArrayDeque<Runnable> mTasks = new ArrayDeque<Runnable>();
+250        Runnable mActive;
+251
+252        public synchronized void execute(final Runnable r) {
+253            mTasks.offer(new Runnable() {
+254                public void run() {
+255                    try {
+256                        r.run();
+257                    } finally {
+258                        scheduleNext();
+259                    }
+260                }
+261            });
+262            if (mActive == null) {
+263                scheduleNext();
+264            }
+265        }
+266
+267        protected synchronized void scheduleNext() {
+268            if ((mActive = mTasks.poll()) != null) {
+269                THREAD_POOL_EXECUTOR.execute(mActive);
+270            }
+271        }
+272    }
+
+Both execution environments use the AsyncTask worker threads for the doInBack
+ground callbacks. The threads have no Looper attached, so the AsyncTask cannot receive
+messages from other threads. Furthermore, the threads’ priority is lowered to Pro
+cess.THREAD_PRIORITY_BACKGROUND so that it will interfere less with the UI thread
+
+*Application Global Execution*
+  AsyncTask implementations can be defined and executed from any component in the
+  application, and several instances in the RUNNING state can coexist. However, all Asyn
+  cTask instances shared an application-wide, global execution property
+  That means that even if two different threads launch two different tasks (as in the fol‐
+  lowing example) at the same time, they will be executed sequentially. Whichever hap‐
+  pens to be executed first by the runtime environment will keep the other from executing
+  until it terminates
+  The application global execution of AsyncTask instances poses a risk
+  that the execution environment gets saturated and that back‐
+  ground tasks get delayed, or worse still, not executed at all.
+
+<h2>Threading rules</h2>
+164 * <p>There are a few threading rules that must be followed for this class to
+165 * work properly:</p>
+166 * <ul>
+167 *     <li>The AsyncTask class must be loaded on the UI thread. This is done
+168 *     automatically as of {@link android.os.Build.VERSION_CODES#JELLY_BEAN}.</li>
+169 *     <li>The task instance must be created on the UI thread.</li>
+170 *     <li>{@link #execute} must be invoked on the UI thread.</li>
+171 *     <li>Do not call {@link #onPreExecute()}, {@link #onPostExecute},
+172 *     {@link #doInBackground}, {@link #onProgressUpdate} manually.</li>
+173 *     <li>The task can be executed only once (an exception will be thrown if
+174 *     a second execution is attempted.)</li>
+175 * </ul>
