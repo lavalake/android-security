@@ -6,6 +6,8 @@ delayed in the queue
 The platform solves the race condition problem by
 making handlerThread.getLooper() a blocking call until the HandlerThread is ready
 to receive messages
+
+*getLooper race condition*
 The HandlerThread sets up the Looper internally and prepares the thread for receiving
 messages. The internal setup gurantees that there is no race condition between creating
 the Looper and sending messages, which can occur in the manual setup
@@ -37,7 +39,7 @@ If additional setup is required on the HandlerThread before it starts to process
 the application should override HandlerThread.onLooperPrepared() , which is in‐
 voked on the background thread when the Looper is prepared. The application can
 define any initialization code in onLooperPrepared , such as creating a Handler that will
-be associated with the HandlerThread
+be associated with the HandlerThread or add IdleHandler
 Sample Code
 public LightsService(Context context) {
 543        super(context);
@@ -93,3 +95,88 @@ public LightsService(Context context) {
 593        //]
 594
 595    }
+
+
+*IdleHandler*
+
+
+*Limit Access to HandlerThread*
+  A Handler can be used to pass any data message or task to the HandlerThread , but the
+  access to the Handler can be limited by keeping it private in a subclass implementation
+  — MyHandlerThread , in the following example—and ensuring that the Looper is not accessible
+  The subclass defines public methods for clients to use so that the thread itself
+  defines the communication contract for how it should be accessed
+
+*Lifecycle*
+  Creation
+  Execution
+  Reset
+  Terminated
+  Stop HandlerThread
+    quit or quitSaftly
+    A HandlerThread can also be terminated by sending a finalization task to the Han
+    dler that quits the Looper , and consequently the HandlerThread :
+      handler.post(new Runnable() {
+        @Override
+        public void run() {
+          Looper.myLooper().quit();
+        }
+    });
+  
+  
+  *Use Cases*
+    A HandlerThread is applicable to many background execution use cases, where se‐
+    quential execution and control of the message queue is desired
+    
+    *Repeated Task Execution*
+      If it is not necessary to have concurrent execution in several threads—for ex‐
+      ample, multiple independent network requests—the HandlerThread provides a simple
+      and efficient way to define tasks to be executed sequentially in the background
+      
+      *Don’t mix long or blocking tasks with shorter tasks*
+      because the shorter ones may be postponed unnecessarily. Instead, split execu‐tion among several HandlerThread or use an Executor
+      
+      *Related Tasks*
+        Interdependent tasks—e.g., those that access shared resources, such as the file system
+        —can be executed concurrently, but they normally require synchronization to render
+        them thread safe and ensure uncorrupted data. The sequential execution of Handler
+        Thread guarantees thread safety, task ordering, and lower resource consumption than
+        the creation of multiple threads. Therefore, it is useful for executing nonindependent tasks.
+        
+        Example: Data persistence with SharedPreferences
+          SharedPreferences is persistent storage for user preferences on the file system. Con‐
+          sequently, it should only be accessed from background threads. But file system access
+          is not thread safe, so a HandlerThread —with sequential execution—makes the access
+          thread safe without adding synchronization, which is normally a simpler approach. The
+          following example shows how a HandlerThread can carry out the job
+          1. define the handler inside HandlerThread
+          2. provide public interface to caller to send message by handler
+          3. create handler inside onLooperPrepared(). When this get called?
+          
+      *Task Chaining*
+          HandlerThread provides an infrastructure for task chaining with some favorable properties:
+            • Easy setup
+            • Independent, reusable tasks that may be chained
+            • Sequential execution
+            • Natural decision points, where you determine whether to continue with the next task in the chain or not
+            • Reporting the current state
+            • Easy passing of data from one task to another in the task chain
+            
+            The task-chaining pattern is implemented in the Handler by defining tasks that are
+            decoupled and reusable in handleMessage
+            
+      Example: Chained network calls
+        Network-intensive applications commonly utilize the result from one network resource
+        as input to a second network resource.
+        
+      *Conditional Task Insertion*
+        HandlerThread offers great control over the Message instances in the queue and op‐
+        portunites to observe their state
+        
+        
+   *Summary*
+      HandlerThread provides a single-threaded, sequential task executor with fine-grained message control
+      It is the most fundamental form of message passing to a background
+      thread, and it can be kept alive during a component lifecycle to provide low-resource
+      background execution.However, when it comes to having full control of the background execution, Handler
+      Thread and message passing are there to assist you!
