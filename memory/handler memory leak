@@ -127,3 +127,10 @@ Use Static Inner Classes
     ty object to be garbage collected. The retention technique in practice differs according
     to the threading mechanisms available in the platform, and is explained for each mech‐
     anism in the chapters of Part II.
+  Clean Up the Message Queue
+    A message sent to a thread may be pending in the message queue either if it is sent with
+    a long execution delay or if messages with a lower timestamp have not finished execu‐
+    tion. If a message is pending when it is no longer needed, you should remove it from
+    the message queue so that all its referenced objects can be deallocated.
+    Therefore, cleaning up messages sent to the UI thread is a valuable way to avoid memory
+    leaks. Both Message and Runnable can be removed from the queue:
