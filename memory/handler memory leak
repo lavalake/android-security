@@ -1,0 +1,129 @@
+For a thread to receive a Message
+object from another thread, it needs to have a MessageQueue to hold pending messages,
+a Looper to dispatch the messages, and a Handler to execute the messages, as explained
+in “Android Message Passing” on page 47. Most of these objects are referenced only
+from the producer thread and therefore can be garbage collected when it exits, but
+Handler is a candidate for memory leaks because it is referenced from the consumer
+thread through a chain of objects, as shown in Figure 6-8. The Handler instance and
+the objects it references cannot be deallocated until the thread terminates.
+
+The Message in‐
+stance, passed between the threads, holds references to a Handler and either to data
+( Object ) or to a task ( Runnable )
+
+From the creation through the
+recycling of a Message , it holds a Handler reference to the consumer thread. While the
+message is pending in the message queue or executed on the thread, it is ineligible for
+garbage collection. Furthermore, the Handler and the Object or Runnable , together
+with all their implicit and explicit references, are still reachable from the GC root
+
+*Sending a data message*
+  Data messages can be passed in various ways; the chosen implementation determines
+  both the risk for, and the size of, a memory leak
+
+public class Outer {
+  Handler mHandler = new Handler() {
+  public void handleMessage(Message msg) {
+// Handle message
+  }
+};
+public void doSend() {
+  Message message = mHandler.obtainMessage();
+  message.obj = new SampleObject();
+  mHandler.sendMessageDelayed(message, 60 * 1000);
+  }
+}
+
+The code example violates both memory leak characteristics: it lets a thread hold ref‐
+erences to more objects than necessary, and it keeps the references reachable for a long
+time. We will look shortly at how to avoid these problems.
+                          Thread (GC root)
+                                |
+                              Message
+                              /     \
+                          Handler   Sample Object
+                             |
+                           OUter
+                           
+*Posting a task message*
+  Posting a Runnable , to be executed on a consumer Thread with a Looper , raises the same
+  concerns as sending a Message but with an additional extra Outer class reference to
+  watch out for
+
+public class Outer {
+  Handler mHandler = new Handler() {
+    public void handleMessage(Message msg) {
+      // Handle message
+    }
+  };
+public void doPost() {
+  mHandler.post(new Runnable() {
+    public void run() {
+      // Long running task
+    }
+  });
+  }
+}
+
+This simple code example posts a Runnable to a thread that calls doPost . Both the
+Handler and Runnable instances refer to the Outer class and increase the size of a po‐
+tential memory leak
+
+                          Thread (GC root)
+                                |
+                              Message
+                              /     \
+                          Handler   Runnable
+                             \       /   |
+                               OUter   Sample Object
+                           
+ Once a Message object is added to the message queue, the Message is
+indirectly referenced from the consumer thread. The longer the Mes
+sage is pending, is in the queue, or does a lengthy execution on the
+receiving thread, the higher the risk is for a memory leak
+
+Avoiding Memory Leaks
+Use Static Inner Classes
+  Local classes, inner classes, and anonymous inner classes all hold implicit references to
+  the outer class they are declared in. Hence, they can leak not only their own objects, but
+  also those referenced from the outer class. Typically, an Activity and its view hierarchy
+  can cause a major leak through the outer class reference
+
+  Instead of using nested classes with outer class references, it is preferred to use static
+  inner classes because they reference only the global class object and not the instance
+  object
+*Use Weak References*
+  As we have seen, static inner classes do not have access to instance fields of the outer
+  class. This can be a limitation if an application would like to execute a task on a worker
+  thread and access or update an instance field of the outer instance. For this need,
+  java.lang.ref.WeakReference comes to the rescue
+  
+  public class Outer {
+    private int mField;
+    private static class SampleThread extends Thread {
+      private final WeakReference<Outer> mOuter;
+      SampleThread(Outer outer) {
+        mOuter = new WeakReference<Outer>(outer);
+      }
+      @Override
+      public void run() {
+        // Do execution and update outer class instance fields.
+        // Check for null as the outer instance may have been GC'd.
+        if (mOuter.get() != null) {
+          mOuter.get().mField = 1;
+        }
+      }
+    }
+  }
+  
+  *Stop Worker Thread Execution*
+    The executing thread may still hold some references that cannot be garbage
+    collected. So to prevent the thread from delaying object deallocation, it should be ter‐
+    minated as soon as it is not required anymor
+    
+  Retain Worker Threads
+    By retaining the thread from the old to the new Activity
+    and removing the thread reference from the old Activity , you can allow the Activi
+    ty object to be garbage collected. The retention technique in practice differs according
+    to the threading mechanisms available in the platform, and is explained for each mech‐
+    anism in the chapters of Part II.
