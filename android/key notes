@@ -84,3 +84,6 @@
 29. asynchronous RPC
     usually binder RPC is synchronous. Calling party will block. We can use a call back passed by client. 
     to implement asynchronous RPC. Refer KeyChain.alias
+30 Messenger
+    we can use handler to communicate with thread in same process
+    for communication between threads in different process
