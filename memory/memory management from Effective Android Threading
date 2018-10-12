@@ -1,0 +1,27 @@
+A memory leak is sometimes strictly defined as memory allocated by
+the application that is not used anymore but never identified by the
+GC as memory that can be reclaimed. Hence, the memory is occu‐
+pied until the application process is terminated. A wider definition
+would also include memory allocated for too long a time, essentially
+hogging memory
+
+As of Honeycomb, the GC executes concurrently on its own thread, not halting the
+application threads
+
+The Dalvik GC uses a very common two-step mechanism called mark and sweep
+
+Any object that is accessible from outside the heap is considered to be a GC root. This
+includes static objects, local objects on the stack, and threads
+the Thread object itself becomes a GC root, and all objects it references are reachable
+threads defined as inner classes keep references to the outer class, which will never be marked for garbage collection as
+long as the thread is executing
+Threads defined as local classes and anonymous inner classes have the same relations
+to the outer class as inner classes, keeping the outer class reachable from a GC root
+during execution.
+
+Static inner classes
+Static inner classes are members of the class instance of the enclosing object. Threads
+defined in a static inner class therefore keep references to the class of the outer object,
+but not to the outer object itself
+If you create a new Runnable as an inner
+class, it will hold a reference to the outer class during the execution, even if it is run by a static inner class
