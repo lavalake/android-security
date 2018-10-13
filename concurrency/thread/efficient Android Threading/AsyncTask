@@ -104,3 +104,19 @@ cess.THREAD_PRIORITY_BACKGROUND so that it will interfere less with the UI threa
 173 *     <li>The task can be executed only once (an exception will be thrown if
 174 *     a second execution is attempted.)</li>
 175 * </ul>
+
+
+Custom Execution
+ The predefined executors— SERIAL_EXECUTOR and THREAD_POOL_EXECUTOR —in the
+ AsyncTask are application global, which risks a performance penalty when the appli‐
+ cation executes a lot of tasks. To circumvent global execution, tasks should be processed
+ in a custom Executor :
+  new AsyncTask().executeOnExecutor(Params, MyCustomExecutor);
+  
+*AsyncTask Alternatives*
+ • Because AsyncTask has a global execution environment, the more tasks you execute
+ with an AsyncTask , the higher the risk that tasks will not be processed as expected
+ because there are other tasks in the application that hold the execution environment.
+• Inconsistency in execution environments over different platform versions makes
+ it more difficult to either optimize execution for performance (concurrent execu‐
+ tion) or thread safety (sequential execution).
