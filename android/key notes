@@ -104,7 +104,14 @@
     Retain Worker Threads
     Clean Up the Message Queue
 34. HandlerThread
-    onLooperPrepared
+    onLooperPrepared: define the handler inside this. When get called? race condition?
     IdleHandler
     Define handler inside HandlerThread. avoild leak the looper.
     User HandlerThread to persist data to sharedPreference
+35. DownloadManager
+36. LoadManager
+37. AsyncTask
+    Hold a static handler of the calling thread. We want this to be UI handler. So must be called by UI thread.
+    Since it's static. So the class must be load in UI thread.
+38. why need service given we have async task\thread
+    A Service can mitigate both the risk for memory leaks and the risk of having tasks terminated prematurely
