@@ -68,6 +68,9 @@
     partial
     empty
 23. activity lifecycle
+    Entry Point:
+        1. activity create
+        2. BroadcastReceiver onReceive
 24. thread lifecycle
     after activity destroyed, how about the thread runnig?
     nice value
