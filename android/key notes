@@ -127,3 +127,6 @@
     a {@link Binder} that is used to perform the communication
 41. alarmManager + pendingIntent
     create periodical task execute for an application
+42. IntentService VS other async task
+    IntentService has the advantage of running as an independent component, which the others do not
+    So ItentService mitigate the lifecycle mismatch problem.
