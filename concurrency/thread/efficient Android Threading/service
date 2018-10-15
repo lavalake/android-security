@@ -5,6 +5,7 @@ question:
 4. To offload background execution, a BroadcastReceiver or Activity should start a Service that then starts a thread
 5. local/remote/global
 6. service restart
+7. A Service runs in the background on the UI thread
 ***************
 Android provides the Service component to run operations that are invisible to the
 user or that should be exposed to other applications.The Service runs in the UI thread, so it can degrade responsiveness and
