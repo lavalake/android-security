@@ -1,0 +1,21 @@
+*Avoid Unexpected Task Termination*
+  The system doesn’t take running threads into consideration when shutting down ap‐
+  plications to reclaim system resources. Therefore, background tasks can be unexpect‐
+  edly terminated when the application process is killed
+  
+  The application termination is based on process rank, and a running Service raises the application process rank—e.g.,
+  how likely an Activity is to be stopped when the application isn’t visible on the screen.
+  Use of a Service helps by reducing the risk that the application and its threads are
+  terminated when the system is low on resources
+
+  There is no asynchronous executor in the Service ; it’s a collaborator rather than a competitor with other asynchronous mechanisms
+  By moving the asynchronous execution to a Service , you can achieve several advantages:
+    • Critical background tasks execute independently of the application’s visibility on
+      the screen—i.e., the user’s interaction will be less likely to interfere with the lifetime of the tasks.
+    • The asynchronous execution can easily be shared between multiple clients, such as Activities.
+    • The asynchronous execution can be triggered both via Intents and through method calls, or even across processes via IPC.
+    
+ For services that should execute tasks sequentially, you can use IntentService , an extension to Service containing a HandlerThread . It has the lifecycle and process rank
+  advantages of a Service combined with a handoff mechanism
+  
+When asynchronous execution is required from a BroadcastReceiver , the IntentService should be the first mechanism you consider
