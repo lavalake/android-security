@@ -1,6 +1,10 @@
 question:
-how service start
-
+1. how service start
+2. *A Service can mitigate both the risk for memory leaks and the risk of having tasks terminated prematurely*
+3. The Service has a lifecycle that can be controlled from background threads
+4. To offload background execution, a BroadcastReceiver or Activity should start a Service that then starts a thread
+5. local/remote/global
+6. service restart
 ***************
 Android provides the Service component to run operations that are invisible to the
 user or that should be exposed to other applications.The Service runs in the UI thread, so it can degrade responsiveness and
@@ -26,3 +30,114 @@ Two risks are inherent in using regular threads instead of services for backgrou
     This increases the risk of process termination, aborting the background thread before it can persist the data
     
 *A Service can mitigate both the risk for memory leaks and the risk of having tasks terminated prematurely*
+    The Service has a lifecycle that can be controlled from background threads: it couples the component lifecycle with the thread’s lifetime
+    Hence, the Service component can be active while the background thread runs and be destroyed
+    when it finishes, which enables better lifecycle control
+    
+    To offload background execution, a BroadcastReceiver or Activity should start a Service that then starts a thread
+    
+*Local, Remote, and Global Services*
+    If the Service is used within the same process as the client, it is local,whereas a Service used from external processes is remote.
+    
+    Local service
+      The Service runs in the same process as the invoking component; i.e., the com‐
+      ponents run on the same UI thread and share the same heap memory area. Hence
+      the Service can share Java objects with clients so that the shared objects run on the
+      calling thread in the client
+    Private remote service
+      The Service runs in a remote process but is accessible only to client components
+      that belong to the application. The remote process has its own UI thread. Thus, the
+      Service UI thread does not delay the execution of the UI threads of the client
+      components. The remote Service cannot expose objects directly to the clients, as
+      they do not share the the same heap memory area. Instead, clients call the Service through the binder
+   Global remote service
+      The Service is exposed to other applications. It has the same properties as the
+      private remote service with its own UI thread, heap memory, and execution on
+      binder threads, but it cannot be referred to by the Service class name because that
+      is not known to external applications. Instead, external access is provided through intent filters
+      
+      
+   *In short, the advantages with running in the local process are:*
+    • Easier and faster communication through shared Java objects instead of IPC
+    • Control over Service task execution from client threads
+    • Less memory consumption
+    
+  *Lifecycle*
+    A Service component is active between the callbacks to onCreate and onDestroy —
+    both are called once per lifecycle—where the implementation can initialize and cleanup data, respectively
+    Context.startService
+    Context.bindService  
+    Started services must implement an onStartCommand method that handles start requests 
+    In spite of the sequential processing of start requests, calls to startService do not block even if they have to wait to be processed
+    in the Service . A start request supplies an Intent that conveys data that can be processed in the Service
+    
+    Because the Service process, along with all its background threads, can be terminated by the runtime, onStartCommand includes a
+    flag that defines how start requests—both pending and processed—should be handled after process termination
+    
+    Options for Restarting
+     Like any Android application, your Service may be terminated by the runtime if there are too many processes running on the device
+     
+    User-Controlled Service
+      User-controlled services may be used for operations that should be running until in‐
+      structed by other Android components that they should terminate
+      Long-running or blocking operations need to be executed asynchronously on back‐
+      ground threads created by the Service . But the Service lifecycle does not control the lifetime of background threads
+      To reduce the risk for memory leaks and performance issues caused by many lingering threads, the Ser
+      vice should not be restarted repeatedly, if possible. It is better to let the Service stay
+      alive as long as needed in order to limit the number of lingering threads and the memory leakage
+    
+    *Example: Bluetooth connection*
+      The following example contains a user-controlled BluetoothService to set up and
+      cancel the pairing, and a basic BluetoothActivity with two buttons that control the
+      Service lifecycle. When the BluetoothService is started—i.e., onStartCommand is
+      called—it initiates a Thread to handle the pairing and keeps a state variable— mListen
+      ing —to ensure that only one pairing operation is active. Consequently, only one thread
+      at the time will be alive. The pairing task defined in a Runnable executes until a con‐
+      nection is set up or cancelled, after which the background thread terminates
+      
+   *Task-Controlled Service*
+     Task-controlled services are typically used to ensure that background threads can be
+     allowed to finish execution with reduced risk of being stopped due to process termination
+     The lifetime of the background thread determines the lifetime of the Service , as shown
+     earlier in Figure 11-2. Therefore, the component is always active while the task is run‐
+     ning on the background thread, which raises its chances of being kept alive
+     So task-controlled services allow applications to utilize a
+     Service for long-running operations on background threads
+     
+     *Example: Concurrent download*
+        The time it takes to download a file over the network is nondeterministic.
+        Therefore, we want to avoid downloading the files from an Activity
+        because the user can navigate away from the application during download.leaving an
+        empty process that can be terminated by the runtime before the download has finished
+        Instead, we let the download be handled by a task-controlled Service that is independ‐
+        ent of user navigation and reduces the probability that the runtime terminates the process during the download
+        
+        The implementation fulfills some requirements:
+         • Concurrent downloads improve performance.
+         • The Service can resume downloading of unfinished files if the process is terminated by the runtime.
+         • The Service stops when there are no more download requests to handle so that its
+           process can be terminated, freeing up resources once it is no longer needed. In this
+           example, the Service runs in the application process, but it can easily be configured
+           to run in a separate process
+           
+           
+       *Bound Service*
+         A bound Service defines a communication interface that the binding components—
+         referred to as client components—can utilize to invoke methods in the Service
+         A client component can terminate a binding explicitly with Context.unbindService , but the binding is also terminated by
+         the runtime if the client component lifecycle ends
+       *Local Binding*
+       
+       *Choosing an Asynchronous Technique*
+         Asynchronous task execution in Services can be sequential or concurrent
+         *Sequential execution for a task-controlled service*
+          When the tasks are executed sequentially—e.g., with a HandlerThread , Executors.newSingleThreadExecutor , 
+          or any customized Executor —it is better to use an IntentService
+          because it has built-in support for sequential task execution that terminates the Service when
+          there are no more tasks to execute
+          
+        *AsyncTask with global executor in local process*
+          The AsyncTask risks delaying tasks because it has a process global executor, as described
+          in Chapter 10, and the same executor is shared for all tasks. Hence, AsyncTasks that
+          execute in the same process as other components should use a custom executor—
+          i.e., a nonglobal executor—or an alternative technique, such as a thread pool
