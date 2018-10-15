@@ -2,3 +2,7 @@ https://developer.android.com/reference/android/os/ResultReceiver
 he implementation underneath is just a simple wrapper around a Binder that is used to perform the communication
 this class does not impact process lifecycle management (you must be using some higher-level component to tell the system that
 your process needs to continue running), the connection will break if your process goes away for any reason
+Local:
+  in same process, call handler.send
+Remote:
+  in different process, use IPC
