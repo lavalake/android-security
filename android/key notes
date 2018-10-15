@@ -130,3 +130,8 @@
 42. IntentService VS other async task
     IntentService has the advantage of running as an independent component, which the others do not
     So ItentService mitigate the lifecycle mismatch problem.
+43. loaders
+    1. cached data
+        not affected by activity configuration change
+    2. leak protection
+        operates only on Application context
