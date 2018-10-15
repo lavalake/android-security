@@ -46,6 +46,7 @@
 18. service
     Started Service
     Bound Service
+    Lifecycle
 19 ContentProvider
     commonly used in collaboration with SQLite databases, which are always
     private to an application.
@@ -115,3 +116,4 @@
     Since it's static. So the class must be load in UI thread.
 38. why need service given we have async task\thread
     A Service can mitigate both the risk for memory leaks and the risk of having tasks terminated prematurely
+    The Service has a lifecycle that can be controlled from background threads: it couples the component lifecycle with the thread’s lifetime
