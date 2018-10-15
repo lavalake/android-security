@@ -1,0 +1,22 @@
+The Loader framework offers a robust way to run asynchronous operations with content
+providers or other data sources. The framework can load data asynchronously and
+deliver it to your application when content changes or is added to the data source.
+
+Asynchronous data management
+  The loader reacts in the background to the data source and triggers a callback in
+  your app when the data source has new data.
+Lifecycle management
+  When your Activity or Fragment stops, its loader stops as well. Furthermore,
+  loaders that are running in the background continue to do their work after config‐
+  uration changes, such as an orientation change.
+Cached data
+  If the result of an asynchronous data load can’t be delivered, it is cached so that it
+  can be delivered when there is a recipient ready—e.g., when an Activity is recre‐
+  ated due to a configuration change
+Leak protection
+  If an Activity undergoes a configuration change, the Loader framework ensures
+  that the Context object is not lost to a leak. The framework operates only on the
+  Application context so that major thread-related leaks don’t occur
+  
+LoaderManager
+  The LoaderManager is an abstract class that manages all loaders used by an Activity or a Fragment
