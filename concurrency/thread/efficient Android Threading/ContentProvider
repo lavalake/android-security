@@ -1,0 +1,26 @@
+Using the AsyncQueryHandler
+  AsyncQueryHandler is an abstract class that simplifies asynchronous access to Content
+  Providers by handling the ContentResolver , background execution, and the message passing between threads
+  
+  final void startDelete(int token, Object cookie, Uri uri, String selection,
+    String[] selectionArgs)
+  final void startInsert(int token, Object cookie, Uri uri,
+    ContentValues initialValues)
+  final void startQuery(int token, Object cookie, Uri uri, String[] projection,
+    String selection, String[] selectionArgs, String orderBy)
+  final void startUpdate(int token, Object cookie, Uri uri, ContentValues values,
+    String selection, String[] selectionArgs)
+    
+   The token and cookie objects permit communication between
+   the caller, the background thread, and the callback,
+   
+    The AsyncQueryHandler can be created and invoke provider operations on any thread,
+    but it is most commonly used in the UI thread. The callbacks are, however, always called
+    on the thread that created the AsyncQueryHandler
+    
+    Example: Expanding Contact List
+    This example shows how to list all the available contacts in the contact book with the help of an AsyncQueryHandler
+    
+    The processing on the background thread is application global—i.e., all AsyncQueryHandler instances
+    within an application add provider requests to the same queue
+    The application-global behavior is similar to the execution environment in an AsyncTask
