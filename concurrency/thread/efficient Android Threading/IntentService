@@ -1,5 +1,14 @@
 The IntentService has the properties
 of the Service lifecycle but also adds built-in task processing on a background thread
+****************
+The IntentService is an easy-to-use, sequential task processor that is very useful for
+offloading operations not only from the UI thread, but also from other originating
+components
+Other sequential task processors discussed in this book, such as Handler
+Thread , Executors.newSingleThreadExecutor , and to some extent AsyncTask , can be
+compared to the IntentService , but IntentService has the advantage of running as
+an independent component, which the others do not.
+****************
 
 The background task executor in the IntentService is a Handler
 Thread . Unlike the default executor in AsyncTask , the IntentService executor is per instance and not per application
@@ -11,3 +20,42 @@ but independent of other IntentService instances
 The IntentService is suitable for when you want to offload tasks easily from the UI
 thread to a background thread with sequential task processing, giving the task a com‐
 ponent that is always active in order to raise the process rank
+
+*Asynchronous Execution in BroadcastReceiver*
+  Either way, the BroadcastReceiver receives an Intent in the onReceive callback, which is invoked on the UI thread
+  However, the BroadcastReceiver component is active only during the execution of
+  onReceive . Thus, an asynchronous task may be left executing after the component is
+  destroyed—leaving the process empty if the BroadcastReceiver was the entry point—
+  which potentially makes the runtime kill the process before the task is finished. The result of the task is then lost.
+  
+  To circumvent the problem of an empty process, the IntentService is an ideal candidate for asynchronous execution from a BroadcastReceiver
+  Once a start request is sent from the BroadcastReceiver , it is not a problem that onReceive finishes because a new
+  component is active during the background execution
+  
+  *Prolonged Lifetime with goAsync*
+    As of API level 11, the BroadcastReceiver.goAsync() method is available to simplify
+    asynchronous execution. It keeps the state of the asynchronous result in a Broadcas
+    tReceiver.PendingResult and extends the lifetime of the broadcast until the Broad
+    castReceiver.PendingResult is explicitly terminated with finish , which can be called
+    after the asynchronous execution is done
+    
+    Applications that should trigger periodical tasks even when the applications themselves
+    are not executing can utilize the AlarmManager system service in the platform. This can
+    be configured with a periodic interval when it will send an Intent to a BroadcastReceiver in the application
+    
+    *IntentService Versus Service*
+    Thus, the use of IntentService matches the commonly used task-controlled Service (“Task-Controlled Service” on
+    page 190), but with built-in support for asynchronous execution and component lifecycle management.
+    
+    However, the simplicity comes with limitations, and a Service may be preferred:
+     *Control by clients*
+        When you want the lifecycle of the component to be controlled by other compo‐
+        nents, choose a user-controlled Service (“User-Controlled Service” on page 186).
+        This goes for both started and bound services.
+     *Concurrent task execution*
+        To execute tasks concurrently, starting multiple threads in Service .
+     *Sequential and rearrangeable tasks*
+        Tasks can be prioritized so that the task queue can be bypassed. For example, a
+        music service that is controlled by buttons—play, pause, rewind, fast forward, stop,
+        etc.—would typically prioritize a stop request so that it is executed prior to any
+        other tasks in the queue. This requires a Service .
