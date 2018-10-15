@@ -1,0 +1,28 @@
+question:
+how service start
+
+***************
+Android provides the Service component to run operations that are invisible to the
+user or that should be exposed to other applications.The Service runs in the UI thread, so it can degrade responsiveness and
+cause ANRs, even though it does not interact directly with the UI
+*****************
+*Why Use a Service for Asynchronous Execution?*
+Two risks are inherent in using regular threads instead of services for background operation:
+  *Decouple lifecycles of components and threads*
+    The thread lifecycle is independent of the Android components and their under‐
+    lying Java object lifecycles. A thread continues to run until the task either finishes
+    or the process is killed, even after the component that started the thread finishes
+    itself. Threads may keep references to Java objects so that they cannot be garbage
+    collected until the thread terminates
+  *Lifecycles of the hosting processes*
+    If the runtime terminates the process, all of its threads are terminated. Thus, back‐
+    ground tasks are terminated and not restarted by default when the process is re‐
+    stored. The runtime terminates processes depending on their process rank—as de‐
+    scribed in “Application termination” on page 7—and a process with no active com‐
+    ponents has a low ranking and is likely to be eligible for termination This may cause
+    unexpected termination of background tasks that should be allowed to finish. For
+    example, an Activity that stores user data to a database in a background thread
+    while the user navigates back leaves an empty process if there are no other components running. 
+    This increases the risk of process termination, aborting the background thread before it can persist the data
+    
+*A Service can mitigate both the risk for memory leaks and the risk of having tasks terminated prematurely*
