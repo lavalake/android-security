@@ -125,3 +125,5 @@
     Generic interface for receiving a callback result from someone
     the implementation underneath is just a simple wrapper around
     a {@link Binder} that is used to perform the communication
+41. alarmManager + pendingIntent
+    create periodical task execute for an application
