@@ -1,0 +1,13 @@
+The IntentService has the properties
+of the Service lifecycle but also adds built-in task processing on a background thread
+
+The background task executor in the IntentService is a Handler
+Thread . Unlike the default executor in AsyncTask , the IntentService executor is per instance and not per application
+
+So an applica‐tion can have multiple IntentService instances, where every instance executes tasks sequentially 
+but independent of other IntentService instances
+
+*Good Ways to Use an IntentService*
+The IntentService is suitable for when you want to offload tasks easily from the UI
+thread to a background thread with sequential task processing, giving the task a com‐
+ponent that is always active in order to raise the process rank
