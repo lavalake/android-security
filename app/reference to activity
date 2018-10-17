@@ -1,0 +1,5 @@
+
+Inside an OnClickListener
+  usually OnclickListener is inner class, it holds a reference to outter activity.
+  Inside OnClickListener, this refer to the new OnClickListener object, not acitity.
+  use MyActivity.this to refer the outter activity.
