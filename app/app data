@@ -24,6 +24,8 @@ Shared preferences
   If you don't need to store a lot of data and it doesn't require structure, you should use SharedPreferences. 
   The SharedPreferences APIs allow you to read and write persistent key-value pairs of primitive data types: booleans, 
   floats, ints, longs, and strings.
+  When naming your shared preference files, you should use a name that's uniquely identifiable to your app. An easy way to do
+  this is prefix the file name with your application ID
   
 Databases
   However, instead of using SQLite APIs directly, we recommend that you create and interact with your databases with the 
