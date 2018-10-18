@@ -1,0 +1,30 @@
+https://developer.android.com/guide/topics/data/data-storage
+
+1 Internal file storage: Store app-private files on the device file system.
+2 External file storage: Store files on the shared external file system. This is usually for shared user files, such as photos.
+3 Shared preferences: Store private primitive data in key-value pairs.
+4 Databases: Store structured data in a private database.
+
+If you want to expose your app's data to other apps, you can use a ContentProvider. Content providers give you full control 
+of what read/write access is available to other apps, regardless of the storage medium you've chosen for the data 
+(though it's usually a database)
+
+Internal storage
+  When the user uninstalls your app, the files saved on the internal storage are removed. Because of this behavior, 
+  you should not use internal storage to save anything the user expects to persist independenly of your app
+  
+Internal cache files
+ If you'd like to keep some data temporarily, rather than store it persistently, you should use the special cache directory 
+ to save the data. Each app has a private cache directory specifically for these kinds of files. When the device is low on 
+ internal storage space, Android may delete these cache files to recover space
+ 
+External storage
+  
+Shared preferences
+  If you don't need to store a lot of data and it doesn't require structure, you should use SharedPreferences. 
+  The SharedPreferences APIs allow you to read and write persistent key-value pairs of primitive data types: booleans, 
+  floats, ints, longs, and strings.
+  
+Databases
+  However, instead of using SQLite APIs directly, we recommend that you create and interact with your databases with the 
+  Room persistence library.
