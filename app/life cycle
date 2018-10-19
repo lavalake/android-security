@@ -1,6 +1,15 @@
 https://developer.android.com/topic/libraries/architecture/lifecycle
 https://developer.android.com/topic/libraries/architecture/saving-states
 
+1. onSaveInstanceState() use Bundle
+2. Bundle can only store small data. It use main thread and serialize
+3. need combine Bundle and ViewModel to save large data
+4. Save simple, lightweight UI state using onSaveInstanceState()
+5. activity tarnsition order
+    Activity A's onPause() method executes.
+    Activity B's onCreate(), onStart(), and onResume() methods execute in sequence. (Activity B now has user focus.)
+    Then, if Activity A is no longer visible on screen, its onStop() method executes.
+    
 onPause() execution is very brief, and does not necessarily afford enough time to perform save operations. For this reason,
 you should not use onPause() to save application or user data, make network calls, or execute database transactions; 
 such work may not complete before the method completes. Instead, you should perform heavy-load shutdown operations during onStop
@@ -29,3 +38,46 @@ Saving and restoring transient UI state
   onSaveInstanceState() alone to persist the UI state across both configuration changes and system-initiated process death. 
   In most cases, though, you should use both ViewModel and onSaveInstanceState() (as outlined in Saving UI State) since 
   onSaveInstanceState() incurs serialization/deserialization costs.
+
+Instance state
+  When your activity is destroyed because the user presses Back or the activity finishes itself, both the system's and the 
+  user's concept of that Activity instance is gone forever. In these scenarios, the user's expectation matches the system's 
+  behavior and you do not have any extra work to do.
+  However, if the system destroys the activity due to system constraints (such as a configuration change or memory pressure),
+  then although the actual Activity instance is gone, the system remembers that it existed. If the user attempts to navigate 
+  back to the activity, the system creates a new instance of that activity using a set of saved data that describes the state 
+  of the activity when it was destroyed.
+  The saved data that the system uses to restore the previous state is called the instance state and is a collection of 
+  key-value pairs stored in a Bundle 
+  By default, the system uses the Bundle instance state to save information about each View object in your activity layout
+  (such as the text value entered into an EditText widget). So, if your activity instance is destroyed and recreated, 
+  the state of the layout is restored to its previous state with no code required by you
+  
+  A Bundle object isn't appropriate for preserving more than a trivial amount of data because it requires serialization on 
+  the main thread and consumes system-process memory
+  
+Save simple, lightweight UI state using onSaveInstanceState()
+
+Navigating bstartActivityForResult()
+
+  Sometimes you want to get a result back from an activity when it ends. For example, you may start an activity that lets 
+  the user pick a person in a list of contacts; when it ends, it returns the person that was selected. To do this, you call
+  the startActivityForResult(Intent, int) method, where the integer parameter identifies the call. This identifier is meant
+  to disambiguate between multiple calls to startActivityForResult(Intent, int) from the same activity. It's not global 
+  identifier and is not at risk of conflicting with other apps or activities.The result comes back through your 
+  onActivityResult(int, int, Intent) method.etween activities
+  
+Coordinating activities
+
+  When one activity starts another, they both experience lifecycle transitions. The first activity stops operating and enters
+  the Paused or Stopped state, while the other activity is created. In case these activities share data saved to disc or 
+  elsewhere, it's important to understand that the first activity is not completely stopped before the second one is created.
+  Rather, the process of starting the second one overlaps with the process of stopping the first one.
+  
+  The order of lifecycle callbacks is well defined, particularly when the two activities are in the same process (app) and one is starting the other. Here's the order of operations that occur when Activity A starts Activity B:
+
+    Activity A's onPause() method executes.
+    Activity B's onCreate(), onStart(), and onResume() methods execute in sequence. (Activity B now has user focus.)
+    Then, if Activity A is no longer visible on screen, its onStop() method executes.
+  This predictable sequence of lifecycle callbacks allows you to manage the transition of information from one activity to another.
+  
