@@ -1,2 +1,23 @@
 https://developer.android.com/topic/libraries/architecture/lifecycle
 https://developer.android.com/topic/libraries/architecture/saving-states
+
+onPause() execution is very brief, and does not necessarily afford enough time to perform save operations. For this reason,
+you should not use onPause() to save application or user data, make network calls, or execute database transactions; 
+such work may not complete before the method completes. Instead, you should perform heavy-load shutdown operations during onStop
+
+In the onStop() method, the app should release or adjust resources that are not needed while the app is not visible to the user.
+For example, your app might pause animations or switch from fine-grained to coarse-grained location updates. 
+
+You should also use onStop() to perform relatively CPU-intensive shutdown operations. For example, if you can't find a more 
+opportune time to save information to a database, you might do so during onStop(). The following example shows an 
+implementation of onStop() that saves the contents of a draft note to persistent storage:
+
+Likelihood of being killed	    Process state	                    Activity state
+Least	            Foreground (having or about to get focus)	        Created
+                                                                    Started
+                                                                    Resumed
+More	                    Background (lost focus)	                  Paused
+Most	                    Background (not visible)	                Stopped
+                                    Empty	                          Destroyed
+                                    
+The system never kills an activity directly to free up memory. Instead, it kills the process in which the activity runs
