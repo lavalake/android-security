@@ -1,0 +1,38 @@
+1. User-initiated UI state dismissal
+
+The user expects that when they start an activity, the transient UI state of that activity will remain the same until the user completely dismisses the activity. The user can completely dismiss an activity by:
+
+  pressing the back button
+  swiping the activity off of the Overview (Recents) screen
+  navigating up from the activity
+  killing the app from Settings screen
+  completing some sort of "finishing" activity (which is backed by Activity.finish())
+  
+The user's assumption in these complete dismissal cases is that they have permanently navigated away from the activity, 
+and if they re-open the activity they expect the activity to start from a clean state
+
+2. System-initiated UI state dismissal
+
+  A user expects an activity’s UI state to remain the same throughout a configuration change, such as rotation or switching 
+  into multi-window mode. However, by default the system destroys the activity when such a configuration change occurs, 
+  wiping away any UI state stored in the activity instance
+  A user also expects your activity's UI state to remain the same if they temporarily switch to a different app and then 
+  come back to your app later
+  
+  In this scenario, your app is placed in the background the system does its best to keep your app process in memory. 
+  However, the system may destroy the application process while the user is away interacting with other apps. In such a case,
+  the activity instance is destroyed, along with any state stored in it. When the user relaunches the app, 
+  the activity is unexpectedly in a clean state
+  
+  Each of the options for preserving UI state vary along the following dimensions that impact the user experience:
+
+                            ViewModel	                                 Saved instance state	                                Persistent storage
+Storage location	          in memory	                                  serialized to disk	                                   on disk or network
+Survives configuration change	Yes	                                            Yes	                                             Yes
+Survives system-initiated     No	                                            Yes	                                             Yes
+process death	
+Survives user complete        No	                                            No	                                              Yes
+activity dismissal/onFinish()	
+Data limitations	    complex objects are fine,                   only for primitive types and simple                     only limited by disk space or cost
+                   but space is limited by available memory         small objects such as String	 
+Read/write time	       quick (memory access only)	        slow (requires serialization/deserialization and disk access)	 slow (requires disk access or network transaction)
