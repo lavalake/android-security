@@ -21,3 +21,11 @@ Most	                    Background (not visible)	                Stopped
                                     Empty	                          Destroyed
                                     
 The system never kills an activity directly to free up memory. Instead, it kills the process in which the activity runs
+
+Saving and restoring transient UI state
+  When the activity is destroyed due to system constraints, you should preserve the user’s transient UI state using a combination
+  of ViewModel, onSaveInstanceState(), and/or local storage.
+  If your UI data is simple and lightweight, such as a primitive data type or a simple object (like String), you can use 
+  onSaveInstanceState() alone to persist the UI state across both configuration changes and system-initiated process death. 
+  In most cases, though, you should use both ViewModel and onSaveInstanceState() (as outlined in Saving UI State) since 
+  onSaveInstanceState() incurs serialization/deserialization costs.
