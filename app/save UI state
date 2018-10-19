@@ -1,3 +1,8 @@
+Options:  
+  ViewModel	
+  Saved instance state	
+  Persistent storage
+
 1. User-initiated UI state dismissal
 
 The user expects that when they start an activity, the transient UI state of that activity will remain the same until the user completely dismisses the activity. The user can completely dismiss an activity by:
@@ -36,3 +41,12 @@ activity dismissal/onFinish()
 Data limitations	    complex objects are fine,                   only for primitive types and simple                     only limited by disk space or cost
                    but space is limited by available memory         small objects such as String	 
 Read/write time	       quick (memory access only)	        slow (requires serialization/deserialization and disk access)	 slow (requires disk access or network transaction)
+
+
+ViewModel
+  is ideal for storing and managing UI-related data while the user is actively using the application
+  A ViewModel is associated with an activity (or some other lifecycle owner) - it stays in memory during a configuration 
+  change and the system automatically associates the ViewModel with the new activity instance that results from the 
+  configuration change.
+  In other words, this means that a ViewModel will not be destroyed if its owner is destroyed for a configuration change 
+  (e.g. rotation). The new instance of the owner will just re-connected to the existing ViewMod
