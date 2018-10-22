@@ -1,0 +1,37 @@
+1. The JNI supports an invocation interface that allows you to embed a Java virtual machine implementation into native applications.
+    Native applications can link with a native library that implements the Java virtual machine, and then
+    use the invocation interface to execute software components written in the Java programming language
+    
+1.3 Implications of Using the JNI
+    First, Java applications that depend on the JNI can no longer readily run on multiple host environments
+    Second, while the Java programming language is type-safe and secure, native languages such as C or C++ are not
+    
+  JNIEXPORT void JNICALL
+  Java_HelloWorld_print (JNIEnv *, jobject);
+    The first argument for every native method implementation is a JNIEnv interface
+    pointer. The second argument is a reference to the HelloWorld object itself (sort of like the “this” pointer in C++).
+    
+    The first parameter, the JNIEnv interface pointer, points to a location that contains a pointer to a function table
+    Each entry in the function table points to a JNI function Native methods always access data
+    structures in the Java virtual machine through one of the JNI functions
+    
+    The second argument differs depending on whether the native method is a static or an instance method
+    The second argument to an instance native method is a reference to the object on which the method is invoked
+    The second argument to a static native method is a reference to the class in which the method is defined
+
+3.1.3 Mapping of Types
+    The JNI defines a set of C and C++ types that correspond to types in the Java programming language
+    There are two kinds of types in the Java programming language: primitive
+    types such as int , float , and char , and reference types such as classes, instances,
+    and arrays. In the Java programming language, strings are instances of the java.lang.String class
+    
+    *The JNI passes objects to native methods as opaque references*
+      Opaque references are C pointer types that refer to internal data structures in the Java virtual machine
+      The exact layout of the internal data structures, however, is hidden from
+      the programmer. The native code must manipulate the underlying objects via the appropriate JNI functions, 
+      which are available through the JNIEnv interface pointer
+      
+      All JNI references have type jobject
+ 3.2.1 Converting to Native Strings
+      Your native method code must use the appropriate JNI functions to convert
+      jstring objects to C/C++ strings. The JNI supports conversion both to and from Unicode and UTF-8 strings
