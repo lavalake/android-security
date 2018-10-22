@@ -1,0 +1,42 @@
+multitasking on Android
+https://developer.android.com/guide/components/activities/tasks-and-back-stack
+1. SingleTask 
+  Figure 4
+2. affinity
+
+  
+  
+A task is a collection of activities that users interact with when performing a certain job in the order in which each activity is opened
+The device Home screen is the starting place for most tasks
+
+Task Stack
+  all the activities in the task are stopped, but the back stack for the task remains intact—the task has simply lost focus while
+  another task takes place
+
+Multiple instance of same activity
+  one activity in your app might be instantiated multiple times (even from different tasks)
+  if the user navigates backward using the Back button, each instance of the activity is revealed in the order they were opened
+  (each with their own UI state)
+  
+launchMode
+  standard
+  singleTop
+  singleTask
+  singleInstance
+  
+  if you start an activity that specifies the singleTask launch mode, then if an instance of that activity exists in a 
+  background task, that whole task is brought to the foreground. At this point, the back stack now includes all activities 
+  from the task brought forward, at the top of the stack
+  
+Handling affinities
+  The affinity indicates which task an activity prefers to belong to. By default, all the activities from the same app have 
+  an affinity for each other.Activities defined in different apps can share an affinity, or activities defined in the 
+  same app can be assigned different task affinities
+  
+Starting a task
+
+  You can set up an activity as the entry point for a task by giving it an intent filter with "android.intent.action.MAIN" 
+  as the specified action and "android.intent.category.LAUNCHER"
+  An intent filter of this kind causes an icon and label for the activity to be displayed in the app launcher
+  
+  This second ability is important: Users must be able to leave a task and then come back to it later using this activity launcher. For this reason, the two launch modes that mark activities as always initiating a task, "singleTask" and "singleInstance", should be used only when the activity has an ACTION_MAIN and a CATEGORY_LAUNCHER filter
