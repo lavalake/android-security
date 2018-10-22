@@ -1,1 +1,16 @@
 https://developer.android.com/jetpack/docs/guide
+Separation of concerns
+  minimize your dependency on Activity and Fragment
+Drive UI from a model
+  Models are components that are responsible for handling the data for an app
+  They're independent from the View objects and app components in your app
+  so they're unaffected by the app's lifecycle and the associated concerns
+  
+  Persistence is ideal for the following reasons:
+    Your users don't lose data if the Android OS destroys your app to free up resources.
+    Your app continues to work in cases when a network connection is flaky or not available.
+
+  Notice that each component depends only on the component one level below it. For example, activities and fragments depend 
+  only on a view model. The repository is the only class that depends on multiple other classes; in this example, 
+  the repository depends on a persistent data model and a remote backend data source
+ 
