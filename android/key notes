@@ -138,6 +138,8 @@
 44. process vs Application lifeCycle
     different components(Activity, Service, BroadcastReceiver) impact the lifetime of process
     A common bug is start a thread in BroadCaset receiver and return. 
+    process dependency
+        if proc A bind to proc b's service, then proc b will be at least as important as proc a
     
 45. "importance hierarchy" 
     1. forground
