@@ -135,3 +135,12 @@
         not affected by activity configuration change
     2. leak protection
         operates only on Application context
+44. process vs Application lifeCycle
+    different components(Activity, Service, BroadcastReceiver) impact the lifetime of process
+    A common bug is start a thread in BroadCaset receiver and return. 
+    
+45. "importance hierarchy" 
+    1. forground
+    2. visible, onPause state
+    3. Service, not visible but valuable for users
+    4. cached process or empty process. not used any more but keep in memory for effecitent app switch
