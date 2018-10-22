@@ -1,0 +1,32 @@
+It is important that application developers understand how different application components (in particular Activity, Service, 
+and BroadcastReceiver) impact the lifetime of the application's proces
+
+Common Bug
+  A common example of a process life-cycle bug is a BroadcastReceiver that starts a thread when it receives an Intent in its 
+  BroadcastReceiver.onReceive() method, and then returns from the function. Once it returns, the system considers the 
+  BroadcastReceiver to be no longer active, and thus, its hosting process no longer needed
+Solution
+  use JobService 
+  
+"importance hierarchy" 
+  based on the components running in them and the state of those components
+  A foreground process
+      a. It is running an Activity at the top of the screen
+      b. It has a BroadcastReceiver that is currently running
+      c. It has a Service that is currently executing code in one of its callbacks
+ A visible process
+      a. It is running an Activity that is visible to the user on-screen but not in the foreground 
+        (its onPause() method has been called). This may occur, for example, if the foreground Activity 
+        is displayed as a dialog that allows the previous Activity to be seen behind it
+      b. It has a Service that is running as a foreground service, through Service.startForeground()
+      c. It is hosting a service that the system is using for a particular feature that the user is aware, such as a live wallpaper, input method service
+ A service process
+      Though these processes are not directly visible to the user, they are generally doing things that the user cares about 
+      (such as background network data upload or download), so the system will always keep such processes running unless there 
+      is not enough memory to retain all foreground and visible processes
+ A cached process
+      one that is not currently needed, so the system is free to kill it as desired when memory is needed elsewhere
+      a well running system will have multiple cached processes always available (for more efficient switching between applications)
+      
+ A process's priority may also be increased based on other dependencies a process has to it. For example, if process A has bound
+ to a Service with the Context.BIND_AUTO_CREATE flag or is using a ContentProvider in process B, then process B's classification will always be at least as important as process A's
