@@ -1,0 +1,10 @@
+Most of the app components that are defined in the Android Framework have lifecycles attached to them. Lifecycles are managed 
+by the operating system or the framework code running in your process
+
+A class can monitor the component's lifecycle status by adding annotations to its methods. Then you can add an observer by 
+calling the addObserver() method of the Lifecycle class and passing an instance of your observer, as shown in the following example:
+
+LifecycleOwner
+  LifecycleOwner is a single method interface that denotes that the class has a Lifecycle. It has one method, getLifecycle(), 
+  which must be implemented by the class.If you're trying to manage the lifecycle of a whole application process instead, see ProcessLifecycleOwner
+  
