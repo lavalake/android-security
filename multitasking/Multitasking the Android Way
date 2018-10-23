@@ -1,3 +1,6 @@
+Process -> multiple Application
+Appilication -> multiple Process
+
 1. process vs application
 A common misunderstanding about Android multitasking is the difference between a process and an application. In Android these 
 are not tightly coupled entities: applications may seem present to the user without an actual process currently running the app;
