@@ -13,4 +13,94 @@ Drive UI from a model
   Notice that each component depends only on the component one level below it. For example, activities and fragments depend 
   only on a view model. The repository is the only class that depends on multiple other classes; in this example, 
   the repository depends on a persistent data model and a remote backend data source
+  
+Build the user interface
+  ViewModel
+    A ViewModel object provides the data for a specific UI component, such as a fragment or activity, and contains data-handling
+    business logic to communicate with the model.
+ LiveData
+    LiveData is an observable data holder
+    Other components in your app can monitor changes to objects using this > holder without creating explicit and rigid 
+    dependency paths between them. The LiveData component also respects the lifecycle state of your app's components—such 
+    as activities, fragments, and services—and includes cleanup logic to prevent object leaking and excessive memory consumption
+    LiveData because it's lifecycle aware, which means it doesn't invoke the onChanged() callback unless the fragment is in an active state;
+    The UserProfileViewModel is automatically restored when the configuration changes, so as soon as the new fragment is created,
+    it receives the same instance of ViewModel, and the callback is invoked immediately using the current data. 
+    
+ Fetch Data
+    add it in ViewModel will make our app more and more difficalt to maintain as it grows.
+    Additionally, the scope of ViewModel is tied to an Activity/Fragment lifecycle.
+    Instead, our ViewModel delegates the data-fetching process to a new module, a repository.
+    Repository modules handle data operations
+      They provide a clean API so that the rest of the app can retrieve this data easily. They know where to get the data from 
+      and what API calls to make when data is updated. You can consider repositories to be mediators between different data sources,
+      such as persistent models, web services, and caches.
+      
+ Manage dependencies between components
+    The UserRepository class above needs an instance of Webservice to fetch the user's data.If each class creates a new 
+    WebService, our app could become very resource heavy.
+    You can use the following design patterns to address this problem:
+      1. Dependency injection (DI): Dependency injection allows classes to define their dependencies without constructing them. 
+      At runtime, another class is responsible for providing these dependencies. 
+      2. Service locator: The service locator pattern provides a registry where classes can obtain their dependencies instead of constructing them.
+      
+      1. These patterns allow you to scale your code because they provide clear patterns for managing dependencies without duplicating code
+      or adding complexity. 
+      2. Furthermore, these patterns allow you to quickly switch between test and production data-fetching implementations.
+      
+ Connect ViewModel and the repository
  
+ Cache data
+    The UserRepository implementation abstracts the call to the Webservice object, but because it relies on only one data 
+    source, it's not very flexible
+    
+    This design is suboptimal for the following reasons:
+      It wastes valuable network bandwidth.
+      It forces the user to wait for the new query to complete
+    To address these shortcomings, we add a new data source to our UserRepository, which caches the User objects in memory:
+    
+ Persist data
+    Using our current implementation, if the user rotates the device or leaves and immediately returns to the app, 
+    the existing UI becomes visible instantly because the repository retrieves data from our in-memory cache.
+    
+    However, what happens if the user leaves the app and comes back hours later, after the Android OS has killed the process? 
+    By relying on our current implementation in this situation, we need to fetch the data again from the network. 
+    
+    The proper way to handle this situation is to use a persistent model. This is where the Room persistence library comes to the rescue.
+    
+    Room
+      Room is an object-mapping library that provides local data persistence with minimal boilerplate code. At compile time, 
+      it validates each query against your data schema, so broken SQL queries result in compile-time errors instead of runtime
+      failures. Room abstracts away some of the underlying implementation details of working with raw SQL tables and queries. 
+      It also allows you to observe changes to the database's data, including collections and join queries, exposing such 
+      changes using LiveData objects. It even explicitly defines execution constraints that address common threading issues, 
+      such as accessing storage on the main thread.
+
+Single source of truth
+    our UserRepository implementation saves web service responses into the database. Changes to the database then trigger 
+    callbacks on active LiveData objects. Using this model, the database serves as the single source of truth, and other 
+    parts of the app access it using our UserRepository. Regardless of whether you use a disk cache, we recommend that your
+    repository designate a data source as the single source of truth for the rest of your app.
+    
+Show in-progress operations
+  
+Test each component
+    1. User interface and interactions: Use an Android UI instrumentation test. 
+    The best way to create this test is to use the Espresso library. 
+    2. ViewModel: You can test the UserProfileViewModel class using a JUnit test
+    3. UserRepository: You can test the UserRepository using a JUnit test, as well. You need to mock the Webservice and the UserDao. In these tests, verify the following behavior:
+      The repository makes the correct web service calls.
+      The repository saves results into the database.
+      The repository doesn't make unnecessary requests if the data is cached and up to date.
+      Because both Webservice and UserDao are interfaces, you can mock them or create fake implementations for more complex test cases.
+    4. UserDao: Test DAO classes using instrumentation tests
+    
+ Best Practice
+    Avoid designating your app's entry points—such as activities, services, and broadcast receivers—as sources of data
+    Create well-defined boundaries of responsibility between various modules of your app.
+    Expose as little as possible from each module.
+    Consider how to make each module testable in isolation
+    Focus on the unique core of your app so it stands out from other apps
+    Persist as much relevant and fresh data as possible
+    Assign one data source to be the single source of truth
+      
