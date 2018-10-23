@@ -1,4 +1,6 @@
 View
 
 Fragement
-
+  A Fragment represents a behavior or a portion of user interface. It's a modular section of an activity and reused.
+  avoid directly manipulating one fragment from another fragment
+  This is especially important because a modular fragment allows you to change your fragment combinations for different screen sizes
