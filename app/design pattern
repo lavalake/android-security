@@ -2,5 +2,8 @@ MVC
 View: android layout/ view group
 Controller: Activity/Fragment
 Model: Data module
+  user_profile.xml: The UI layout definition for the screen.
+  UserProfileFragment: The UI controller that displays the data.
+  UserProfileViewModel: The class that prepares the data for viewing in the UserProfileFragment and reacts to user interactions.
 
 
