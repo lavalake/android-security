@@ -1,0 +1,5 @@
+1. Best practices
+    a. Keep your UI controllers (activities and fragments) as lean as possible
+    b. Try to write data-driven UIs where your UI controller’s responsibility is to update the views as data changes, 
+      or notify user actions back to the ViewModel
+    c. 
