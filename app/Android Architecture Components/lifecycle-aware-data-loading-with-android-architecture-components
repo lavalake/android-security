@@ -1,0 +1,23 @@
+
+https://medium.com/androiddevelopers/lifecycle-aware-data-loading-with-android-architecture-components-f95484159de4
+Benefits of loader:
+  1. The best part about Loaders is that Loaders survive configuration changes.
+  2. But even better: Loaders don’t stay around forever
+  3. They’ll be automatically cleaned up when the requesting Activity or Fragment is permanently destroyed. 
+Two of the largest benefits of Loaders were:
+  They encapsulate the process of data loading
+  They survive configuration changes, preventing unnecessarily reloading data
+With Architecture Components, these two benefits are now handled by two separate classes:
+  LiveData provides a lifecycle aware base class for encapsulating loading data
+  ViewModels are automatically retained across configuration changes
+  
+There’s two safety features in play here:
+  1. The AndroidViewModel (a subclass of ViewModel) only has a reference to the application Context, so we’re very importantly
+  not referencing the Context of an Activity
+  2. LiveData only delivers the results if there’s something observing it
+  
+There’s two things we need to do:
+  1. Get a reference to our ViewModel
+  2. Start observing our LiveData
+  
+  
