@@ -1,0 +1,19 @@
+1. WorkManager chooses the appropriate way to run your task based on such factors as the device API level and the app state. 
+2. WorkManager can run your task in a new thread in your app's process. If your app is not running, WorkManager chooses an appropriate way
+   to schedule a background task--depending on the device API level and included dependencies
+      JobScheduler
+      Firebase JobDispatcher
+      AlarmManager
+      
+    Note: WorkManager is intended for tasks that require a guarantee that the system will run them even if the app exits, 
+    like uploading app data to a server. It is not intended for in-process background work that can safely be terminated 
+    if the app process goes away; for situations like that, we recommend using ThreadPools.
+    
+ 3. Classes and concepts
+    Worker: specifies what task you need to perform
+    WorkRequest: represents an individual task
+    
+ 4. Typical workflow
+    Suppose that you're writing a photo library app, and that app needs to periodically compress its stored images.
+    You want to use the WorkManager APIs to schedule the image compression. In this case, you don't particularly 
+    care when the compression happens; you want to set up the task and forget about it.
