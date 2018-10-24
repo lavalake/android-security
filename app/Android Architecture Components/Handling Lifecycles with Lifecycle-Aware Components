@@ -8,3 +8,27 @@ LifecycleOwner
   LifecycleOwner is a single method interface that denotes that the class has a Lifecycle. It has one method, getLifecycle(), 
   which must be implemented by the class.If you're trying to manage the lifecycle of a whole application process instead, see ProcessLifecycleOwner
   
+Best practices for lifecycle-aware components
+  1. Keep your UI controllers (activities and fragments) as lean as possible
+  2. Try to write data-driven UIs where your UI controller’s responsibility is to update the views as data changes, 
+    or notify user actions back to the ViewModel
+  3. Put your data logic in your ViewModel class. 
+  4. Use Data Binding to maintain a clean interface between your views and the UI controller
+  5. If your UI is complex, consider creating a presenter class to handle UI modifications
+  6. Avoid referencing a View or Activity context in your ViewModel. avoid memory leak
+
+Use cases for lifecycle-aware components
+  A few examples are:
+    1. Switching between coarse and fine-grained location updates
+    2. Stopping and starting video buffering
+    3. Starting and stopping network connectivity
+    4. Pausing and resuming animated drawables
+    
+Handling on stop events
+    When a Fragment or AppCompatActivity's state is saved via onSaveInstanceState(), 
+    it's UI is considered immutable until ON_START is called
+    LiveData prevents this edge case out of the box by refraining from calling its observer if the observer's associated 
+    Lifecycle isn't at least STARTED. Behind the scenes, it calls isAtLeast() before deciding to invoke its observer
+    
+    Unfortunately, AppCompatActivity's onStop() method is called after onSaveInstanceState(), which leaves a gap where UI 
+    state changes are not allowed but the Lifecycle has not yet been moved to the CREATED state.
