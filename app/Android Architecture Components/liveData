@@ -1,1 +1,25 @@
+1. If the Lifecycle object is not in an active state, then the observer isn't called even if the value changes.
+2. After the Lifecycle object is destroyed, the observer is automatically removed. So no reference and leak
 
+Work with LiveData objects
+  1. Create an instance of LiveData to hold a certain type of data. This is usually done within your ViewModel class.
+  2. Create an Observer object that defines the onChanged() method.You usually create an Observer object in a UI controller
+  3. Attach the Observer object to the LiveData object using the observe() method. The observe() method takes a LifecycleOwner object
+  
+Create LiveData objects
+  A LiveData object is usually stored within a ViewModel object and is accessed via a getter method
+Observe LiveData objects
+  In most cases, an app component’s onCreate() method is the right place to begin observing a 
+  LiveData object for the following reasons:
+    To ensure the system doesn’t make redundant calls from an activity or fragment’s onResume() method
+    To ensure that the activity or fragment has data that it can display as soon as it becomes active
+Update LiveData objects
+  ?????Note: You must call the setValue(T) method to update the LiveData object from the main thread. If the code is executed 
+  in a worker thread, you can use the postValue(T) method instead to update the LiveData object.?????
+  
+Use LiveData with Room
+  The Room persistence library supports observable queries, which return LiveData objects. Observable queries are written as
+  part of a Database Access Object (DAO).
+  
+  The generated code runs the query asynchronously on a background thread when needed. This pattern is useful for keeping the 
+  data displayed in a UI in sync with the data stored in a database
