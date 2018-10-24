@@ -146,3 +146,6 @@
     2. visible, onPause state
     3. Service, not visible but valuable for users
     4. cached process or empty process. not used any more but keep in memory for effecitent app switch
+46. model
+    1. UI Controler (activity/fragement). only update ui and reflect user chagne to viewModel
+    2. ViewModel: data logic. connector between UI controller and data model. Featch data
