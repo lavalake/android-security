@@ -1,1 +1,16 @@
+https://developer.android.com/training/data-storage/room/
+The library helps you create a cache of your app's data on a device that's running your app. This cache, which serves as your
+app's single source of truth, allows users to view a consistent copy of key information within your app, regardless of
+whether users have an internet connection.
 
+Apps that handle non-trivial amounts of structured data can benefit greatly from persisting that data locally
+
+There are 3 major components in Room:
+  1. Database: Contains the database holder and serves as the main access point for the underlying connection to 
+    your app's persisted, relational data
+  2. Entity: Represents a table within the database
+  3. DAO: Contains the methods used for accessing the database.
+  
+Note: You should follow the singleton design pattern when instantiating an AppDatabase object, as each RoomDatabase instance 
+is fairly expensive, and you rarely need access to multiple instances
+  
