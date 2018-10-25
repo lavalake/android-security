@@ -151,3 +151,8 @@
     2. ViewModel: data logic. connector between UI controller and data model. Featch data
 49. WorkManager vs ThreadPool
     WorkManager is intended for tasks that require a guarantee that the system will run them even if the app exits
+50. loader
+    1. retain data across configuration change
+    2. destroyed when activity finshed permanetly
+51. AsyncTaskLoader
+    
