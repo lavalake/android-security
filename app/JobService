@@ -7,7 +7,12 @@
 6. The most critical issue is backwards compatibility
   JobScheduler introduced from API21. Android O (26) not allow background service run, need to use JobService. Pre API do not hav it.
 7. JobIntentService
+当我们有以下需求时，可以使用调度作业
 
+APP有可以推迟的非面向用户的工作
+APP有当插入设备时您希望优先执行的工作
+APP有需要访问网络或 Wi-Fi 连接的任务
+APP有希望作为一个批次定期运行的许多任务
 https://medium.com/til-kotlin/jobintentservice-for-background-processing-on-android-o-39535460e060
 we can not completely rule out scenarios like when you need to sync contacts or photo data in the background. In such cases, 
 JobScheduler can be good alternative for the scenarios.
