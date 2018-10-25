@@ -1,0 +1,7 @@
+AsyncTask
+IntentService
+HandlerThread
+ThreadPool
+JobService
+DownloadManager
+JobIntentService
