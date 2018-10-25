@@ -1,1 +1,57 @@
+1. By default, JobService runs on the main thread
+2. id is a important key for identifying your job
+3. It is important to determine the appropriate scenario between the consumption of the battery and the 
+   frequency of its execution
+4.  you should have a clear pause / resume scenarios to implement functionality like a transaction? How?
+5. Job execution shares their life with Wakelock.
+6. The most critical issue is backwards compatibility
+  JobScheduler introduced from API21. Android O (26) not allow background service run, need to use JobService. Pre API do not hav it.
+7. JobIntentService
 
+https://medium.com/til-kotlin/jobintentservice-for-background-processing-on-android-o-39535460e060
+we can not completely rule out scenarios like when you need to sync contacts or photo data in the background. In such cases, 
+JobScheduler can be good alternative for the scenarios.
+
+What is JobScheduler?
+  Android Lollipop introduced JobScheduler as a part of optimizing background behavior.
+  This task required conditions and factors ( JobInfo) and the operation of the condition ( JobService) running in the background.
+  
+  For example, to sync large data, you should receive the ACTION_POWER_CONNECTED broadcast intent and continuously check the 
+  network status or storage. If you use JobScheduler, these conditions will be described on a JobInfo object
+  
+  Note, JobService run in Main thread. So need to offload by AsycTask or ThreadPool.
+    1. onStartJob()Return true if it need more time to finish your work such as AsyncTask or Thread thing, and false if the action
+    is finished at this method
+    2. If you return true, you should explicitly notify the end of the job by invoking finishJob()
+    3. onStopJob()
+      Callback invoked by the system if it needs to be canceled before the job is finished.
+    4. jobFinished()
+      Called when all the work on the job is completed and inform the JobManager you’ve finished executing
+    
+ General Considerations
+    JobScheduler allows you to use background executions with less impact on system resources such as battery or memory, but this is not all.
+    Before you use it, keep the followings in mind
+      1. By default, JobService runs on the main thread
+      2. id is a important key for identifying your job
+      3. It is important to determine the appropriate scenario between the consumption of the battery and the 
+        frequency of its execution
+      4.  you should have a clear pause / resume scenarios to implement functionality like a transaction
+      5. Job execution shares their life with Wakelock
+        The number of WakeLock and the time are critical value to calculate the battery drain for that app
+      6. The most critical issue is backwards compatibility
+        JobService is a feature supported by API level 21, so there is a backward compatibility issue.
+        
+  *SupportLib: JobIntentService*
+    It uses the JobScheduler function on Android O, but runs as a background service to emulate JobScheduler on pre-O
+    JobIntentService has the following characteristics:
+      
+https://blog.csdn.net/fishle123/article/details/50790894
+JobService的使用及源码分析
+  JobScheduler来执行一些需要满足特定条件但不紧急的后台任务
+  JobService继承自Service，并且是一个抽象类
+  JobService源码分析
+    实际上JobService选择的是重写onBind。为什么使用bind方式呢？上面有提到，JobService是通过JobScheduler来调度，很明显这里会涉及到跨进程通信，
+    如果使用AIDL（当然也可以使用Messenger）就可以很容易实现了
+
+https://medium.com/google-developers/scheduling-jobs-like-a-pro-with-jobscheduler-286ef8510129
+https://www.youtube.com/watch?time_continue=538&v=hbLAzwhBjFE
