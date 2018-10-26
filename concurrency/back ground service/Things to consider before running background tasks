@@ -1,0 +1,8 @@
+https://blog.yipl.com.np/things-to-consider-before-running-background-tasks-e71f00d2ad3a
+Thread:
+HandlerThread
+AsyncTask
+Service:
+IntentService
+Loader
+JobService and JobScheduler
