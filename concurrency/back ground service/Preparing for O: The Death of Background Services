@@ -10,3 +10,42 @@ android 8.0 places limitations on what apps can do while users aren't directly i
   3. using JobScheduler jobs. This approach lets an app arrange to perform work when the app isn't actively running
 Background Service Limitations
   The system distinguishes between foreground and background apps.
+  An app is considered to be in the foreground if any of the following is true:
+    It has a visible activity, whether the activity is started or paused.
+    It has a foreground service
+    Another foreground app is connected to the app, either by binding to one of its services or by making use of one of its content providers
+    Note: These rules don't affect bound services in any way. If your app defines a bound service, other components can bind to 
+    that service whether or not your app is in the foreground.
+    
+ An app is placed on the whitelist when it handles a task that's visible to the user, such as:
+    Handling a high-priority Firebase Cloud Messaging (FCM) message.
+    Receiving a broadcast, such as an SMS/MMS message.
+    Executing a PendingIntent from a notification
+    Starting a VpnService before the VPN app promotes itself to the foreground.
+    
+    Note: IntentService is a service, and is therefore subject to the new restrictions on background services.
+    As a result, many apps that rely on IntentService do not work properly when targeting Android 8.0 or higher. 
+    For this reason, Android Support Library 26.0.0 introduces a new JobIntentService class, which provides the same 
+    functionality as IntentService but uses jobs instead of services when running on Android 8.0 or higher
+      
+In many cases, your app can replace background services with JobScheduler jobs.
+Prior to Android 8.0, the usual way to create a foreground service was to create a background service, 
+then promote that service to the foreground. With Android 8.0, there is a complication; the system doesn't 
+allow a background app to create a background service. For this reason, Android 8.0 introduces the new method 
+startForegroundService() to start a new service in the foreground
+
+Broadcast Limitations
+    Apps that target Android 8.0 or higher can no longer register broadcast receivers for implicit broadcasts in their manifest.
+    An implicit broadcast is a broadcast that does not target that app specifically
+    Apps can continue to register for explicit broadcasts in their manifests.
+    Apps can use Context.registerReceiver() at runtime to register a receiver for any broadcast, whether implicit or explicit.
+    
+    In many cases, apps that previously registered for an implicit broadcast can get similar functionality by using a JobScheduler job
+    
+migration
+    If your app relies on services that run in the background while your app is idle.you will need to replace them
+    1. If your app needs to create a foreground service while the app is in the background, use the startForegroundService() method instead of startService()
+    2. If the service is noticeable by the user, make it a foreground service.
+    3. Find a way to duplicate the service's functionality with a scheduled job
+    4 .Use FCM to selectively wake your application up when network events occur, rather than polling in the background
+    5. Defer background work until the application is naturally in the foreground.
