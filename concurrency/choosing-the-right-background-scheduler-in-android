@@ -1,0 +1,18 @@
+https://www.bignerdranch.com/blog/choosing-the-right-background-scheduler-in-android/
+Scheduling Work Within Your Application Process
+  Handler Timer and Thread
+Using the AlarmManager to Schedule Tasks at the System Level
+  AlarmManager allows an application to schedule tasks that may need to run or repeat beyond the scope of its lifecycle
+Job Scheduler
+  JobScheduler helps perform background work in an efficient way, especially networking
+GCM Network Manager
+  GCMNetworkManager has all of the nice battery saving schedule features from JobScheduler, but the backwards compatibility and simplicity 
+  of its Service counterpart will make it more appealing to most developers
+Sync Adapter
+  Sync Adapters were introduced with the intent of keeping Android devices and servers in sync
+  Syncs could be triggered from data changes in either the server or device, or by elapsed time and time of day
+  The system will try to batch outgoing syncs to preserve battery life, and transfers that are unable to run 
+  will queue up for transfer at a later time. The system will attempt syncs only when the device is connected to a network
+Doze Mode
+  Doze Mode was introduced in Android Marshmallow as a way to minimize battery drain while a user has been away from their device for a period of time
+  
