@@ -1,0 +1,12 @@
+https://blog.klinkerapps.com/android-o-background-services/
+Background Service Limitations
+https://developer.android.com/about/versions/oreo/background
+android 8.0 places limitations on what apps can do while users aren't directly interacting with them. Apps are restricted in two ways:
+  1. Background Service Limitations: While an app is idle, there are limits to its use of background services. 
+    This does not apply to foreground services, which are more noticeable to the user
+  2. Broadcast Limitations: With limited exceptions, apps cannot use their manifest to register for implicit broadcasts.
+    They can still register for these broadcasts at runtime, and they can use the manifest to register for explicit 
+    broadcasts targeted specifically at their app
+  3. using JobScheduler jobs. This approach lets an app arrange to perform work when the app isn't actively running
+Background Service Limitations
+  The system distinguishes between foreground and background apps.
