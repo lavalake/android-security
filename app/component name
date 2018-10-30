@@ -1,0 +1,3 @@
+Identifier for a specific application component (Activity, Service, BroadcastReceiver, or ContentProvider) that is available. 
+Two pieces of information, encapsulated here, are required to identify a component: the package (a String) it exists in, 
+and the class (a String) name inside of that package.
