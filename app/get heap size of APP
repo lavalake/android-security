@@ -1,0 +1,3 @@
+ActivityManager am = ContextCompat.getSystemService(context, ActivityManager.class);
+boolean largeHeap = (context.getApplicationInfo().flags & FLAG_LARGE_HEAP) != 0;
+int memoryClass = largeHeap ? am.getLargeMemoryClass() : am.getMemoryClass();
