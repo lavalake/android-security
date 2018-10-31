@@ -1,0 +1,7 @@
+https://www.jianshu.com/p/043c83176d6e
+
+1. singleton instance
+2. getApplication context, avoid lifecycle handling of activity/fragment
+3. build picasso signleton instance
+    1. init downloader: use reflection to get Okhttpclient, if fail, use UrlConnectionDownloader
+    2. cach: 15% of heap. 
