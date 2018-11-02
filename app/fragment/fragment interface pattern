@@ -1,0 +1,4 @@
+define a interface in fragment
+host activity implement this interface
+attach fragment to this activity
+fragment could call activity.interfacemethod() to communicate with acitivity
