@@ -1,0 +1,19 @@
+https://stackoverflow.com/questions/45664666/android-retaining-fragment
+  setRetainInstance(true): The Fragment's state will be retained (and not destroyed!) across configuration changes
+  (e.g. screen rotate). The state will be retained 
+  even if the configuration change causes the "parent" Activity to be destroyed. However, the view of the Fragment gets destroyed!
+
+Lifecycle Calls:
+
+  onPause() -> onStop() -> onDestroyView() -> onDetach()
+  onAttach() -> onCreateView() -> onStart() -> onResume()
+
+setRetainInstance(true) is especially useful for long running operations inside Fragments which do not care about configuration changes
+For Example, some background downloading task not affected by configuration chagne.
+
+https://medium.com/@ghbhatt/my-experiments-with-headless-fragments-20606c5180ab
+  executing long running tasks and then passing the data back to Activity using WeakReferences
+
+ViewModel VS Fragment
+  basis of ViewModelProviders that provides the ViewModel to store data across configuration changes is, none other than, 
+  setRetainInstance(true)
