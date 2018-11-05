@@ -71,6 +71,8 @@
     Entry Point:
         1. activity create
         2. BroadcastReceiver onReceive
+    recreation
+        use Bundle savedInstanceStat to decide whether this is a recreation of activity
 24. thread lifecycle
     after activity destroyed, how about the thread runnig?
     nice value
@@ -161,6 +163,10 @@
         onAttach() -> onCreate() -> onCreateView() -> onActivityCreated()-> onStart() -> onResume()
     LifeCycle retained
         no onDestroy() and onCreate(). Fragement will not destroy
+    Avoid duplicate creation
+        int activity onCreate, use Bundle savedInstanceStat to decide whether it's a recreation
+        if not null, just call fragmentManager to get fragment, not creat it again.
+        https://blog.csdn.net/zhangyalong_android/article/details/68942619
 53. ViewModel
     used to retain data when activity destory due to configuration change.
     use Fragement and setRetainInstance(true)
