@@ -155,4 +155,12 @@
     1. retain data across configuration change
     2. destroyed when activity finshed permanetly
 51. AsyncTaskLoader
-    
+52. Fragment
+    LifeCycle
+        onPause() -> onStop() -> onDestroyView() -> onDestroy() -> onDetach()
+        onAttach() -> onCreate() -> onCreateView() -> onActivityCreated()-> onStart() -> onResume()
+    LifeCycle retained
+        no onDestroy() and onCreate(). Fragement will not destroy
+53. ViewModel
+    used to retain data when activity destory due to configuration change.
+    use Fragement and setRetainInstance(true)
