@@ -164,3 +164,4 @@
 53. ViewModel
     used to retain data when activity destory due to configuration change.
     use Fragement and setRetainInstance(true)
+    can be used to communicate data between fragment
