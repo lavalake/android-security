@@ -1,0 +1,9 @@
+http://steveliles.github.io/android_activity_lifecycle_gotcha.html
+App A starts with Activity A1, which sets up some state in the Application object.
+Activity A1 starts Activity A2, which uses the state in the Application object.
+Activity A2 fires an Intent for Activity B1 of App B and expects some result (lets say we fired an Intent asking for an image 
+to be captured by the camera app).
+App B starts, and launches Activity B1.
+Activity B1 is memory-heavy, so the system shuts down App A (completely kills its process), even though it is on the back-stack waiting for a result.
+Activity B1 returns, app A's Application object is created, Activity A2 is started again but Activity A1 never launched in the 
+lifetime of this Application object so does not get the opportunity to set up the state of the Application object.
