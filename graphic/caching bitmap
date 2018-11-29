@@ -1,0 +1,15 @@
+1. weakReference
+  In the past, a popular memory cache implementation was a SoftReference or WeakReference bitmap cache, however this is not 
+  recommended. Starting from Android 2.3 (API Level 9) the garbage collector is more aggressive with collecting soft/weak 
+  references which makes them fairly ineffective. In addition, prior to Android 3.0 (API Level 11), the backing data of 
+  a bitmap was stored in native memory which is not released in a predictable manner, potentially causing an application 
+  to briefly exceed its memory limits and crash.
+2. LruCache consideration
+  1. How memory intensive is the rest of your activity and/or application?
+  2. How many images will be on-screen at once? How many need to be available ready to come on-screen?
+  3. What is the screen size and density of the device? An extra high density screen (xhdpi) device like Galaxy Nexus will 
+    need a larger cache to hold the same number of images in memory compared to a device like Nexus S (hdpi).
+  4. What dimensions and configuration are the bitmaps and therefore how much memory will each take up?
+  5. How frequently will the images be accessed? Will some be accessed more frequently than others? If so, perhaps you may want
+    to keep certain items always in memory or even have multiple LruCache objects for different groups of bitmaps.
+  6. Can you balance quality against quantity? Sometimes it can be more useful to store a larger number of lower quality bitmaps, potentially loading a higher quality version in another background task.
