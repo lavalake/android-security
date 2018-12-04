@@ -1,0 +1,1 @@
+Ashmem is not directly accessible to Java applications, but there are a few exceptions, and images are one of them
