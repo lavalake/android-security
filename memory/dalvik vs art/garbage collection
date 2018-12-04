@@ -1,0 +1,8 @@
+https://code.fb.com/android/memory-optimization-for-feeds-on-android/
+1. In this heap dump taken from a sample app, Long objects have a noticeable presence; while each object is not big by itself, 
+there are so many that they occupy a large portion of the app’s memory in the heap. This is especially problematic for devices
+running the Dalvik runtime. Unlike ART, which is the newer Android runtime environment, Dalvik doesn’t have a generational 
+garbage collection, known to be more optimal for handling many small objects. As we scroll through News Feed and the number of 
+objects grows, the garbage collection will cause the app to pause and sweep unused objects from the memory. The more objects 
+that accumulate, the more frequently the garbage collector will have to pause the app, causing it to stutter and stall and 
+making for a poor user experience.
