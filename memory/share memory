@@ -1,0 +1,13 @@
+In order to fit everything it needs in RAM, Android tries to share RAM pages across processes. 
+It can do so in the following ways:
+  1. Each app process is forked from an existing process called Zygote.The Zygote process starts when the system boots and loads
+  common framework code and resources (such as activity themes). To start a new app process, the system forks the Zygote process
+  then loads and runs the app's code in the new process. This approach allows most of the RAM pages allocated for framework 
+  code and resources to be shared across all app processes
+  2. Most static data is mmapped into a process. This technique allows data to be shared between processes, and also allows 
+    it to be paged out when needed. Example static data include: Dalvik code (by placing it in a pre-linked .odex file for 
+    direct mmapping), app resources (by designing the resource table to be a structure that can be mmapped and by aligning 
+    the zip entries of the APK), and traditional project elements like native code in .so files
+  3. In many places, Android shares the same dynamic RAM across processes using explicitly allocated shared memory regions 
+  (either with ashmem or gralloc). For example, window surfaces use shared memory between the app and screen compositor, 
+  and cursor buffers use shared memory between the content provider and client
