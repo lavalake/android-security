@@ -17,3 +17,4 @@ Ensure the code does not make any JNI calls or block for any reason between call
   Ensure that all Get/Release calls are matched within each JNI method.
 7. Analyzing the method trace
 8. local reference overflow
+9. JNI deadlock
