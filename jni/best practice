@@ -16,3 +16,4 @@ Ensure the code does not make any JNI calls or block for any reason between call
   Validate that there is a check for an exception after all JNI calls that can raise an exception.
   Ensure that all Get/Release calls are matched within each JNI method.
 7. Analyzing the method trace
+8. local reference overflow
