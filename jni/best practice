@@ -1,0 +1,18 @@
+1. preformance
+  a. array
+  b. cache
+  c. object
+2. JNIEnv
+  The JNI specification states that each JNIEnv is local to a thread.A JVM can rely on this assumption, 
+  storing additional thread-local information within the JNIEnv. 
+3. exception
+4. Correctness Tip #5
+Ensure the code does not make any JNI calls or block for any reason between calls to GetXXXCritical() and ReleaseXXXCritical().
+5. Using global references incorrectly
+6. Validating new code against the JNI specification
+  Validate that a JNIEnv is used only with the thread to which it is associated.
+  Validate that JNI Methods are not called within GetXXXCritical()'s ReleaseXXXCritical() section.
+  For a method that enters a critical section, validate that the method does not return before it is released.
+  Validate that there is a check for an exception after all JNI calls that can raise an exception.
+  Ensure that all Get/Release calls are matched within each JNI method.
+7. Analyzing the method trace
