@@ -18,3 +18,16 @@ Ensure the code does not make any JNI calls or block for any reason between call
 7. Analyzing the method trace
 8. local reference overflow
 9. JNI deadlock
+10. JavaVM and JNIEnv
+  JNI defines two key data structures, "JavaVM" and "JNIEnv". Both of these are essentially pointers to pointers to function tables
+  The JNIEnv provides most of the JNI functions. Your native functions all receive a JNIEnv as the first argument
+  The JNIEnv is used for thread-local storage. For this reason, you cannot share a JNIEnv between threads. If 
+  a piece of code has no other way to get its JNIEnv, you should share the JavaVM, and use GetEnv to discover
+  the thread's JNIEnv
+11. Threads
+  All threads are Linux threads, scheduled by the kernel.but they can also be created elsewhere and then attached to the JavaVM
+  Attaching a natively-created thread causes a java.lang.Thread object to be constructed and added to the "main" ThreadGroup,
+  making it visible to the debugger.
+  *****************
+  Android does not suspend threads executing native code?
+12. statci vs non-static
