@@ -1,0 +1,44 @@
+https://stackoverflow.com/questions/2504334/passing-data-types-from-java-to-c-or-vice-versa-using-jni
+public class Employee {
+    private int age;
+
+    public Employee(int age) {
+        this.age = age;
+    }
+
+    public int getAge() {
+        return age;
+    }
+}
+Call this code from some client:
+
+public class Client {
+    public Client() {
+        Employee emp = new Employee(32);
+
+        System.out.println("Pass employee to C and get age back: "+getAgeC(emp));
+
+        Employee emp2 = createWithAge(23);
+
+        System.out.println("Get employee object from C: "+emp2.getAge());
+    }
+
+    public native int getAgeC(Employee emp);
+    public native Employee createWithAge(int age);
+}
+You could have JNI functions like this for passing an employee object from Java to C, as a jobject method argument:
+
+JNIEXPORT jint JNICALL Java_Client_getAgeC(JNIEnv *env, jobject callingObject, jobject employeeObject) {
+    jclass employeeClass = (*env)->GetObjectClass(env, employeeObject);
+    jmethodID midGetAge = (*env)->GetMethodID(env, employeeClass, "getAge", "()I");
+    int age =  (*env)->CallIntMethod(env, employeeObject, midGetAge);
+    return age;
+}
+Passing an employee object back from C to Java as a jobject, you could use:
+
+JNIEXPORT jobject JNICALL Java_Client_createWithAge(JNIEnv *env, jobject callingObject, jint age) {
+    jclass employeeClass = (*env)->FindClass(env,"LEmployee;");
+    jmethodID midConstructor = (*env)->GetMethodID(env, employeeClass, "<init>", "(I)V");
+    jobject employeeObject = (*env)->NewObject(env, employeeClass, midConstructor, age);
+    return employeeObject;
+}
