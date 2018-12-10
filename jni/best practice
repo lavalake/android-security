@@ -31,3 +31,5 @@ Ensure the code does not make any JNI calls or block for any reason between call
   *****************
   Android does not suspend threads executing native code?
 12. statci vs non-static
+13. registerNativeMethods
+  Jni_onload
