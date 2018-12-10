@@ -1,0 +1,19 @@
+https://www.programering.com/a/MTO0UTMwATI.html
+static JNINativeMethod gMethods[] = {
+        {"stringFromJNI", "()Ljava/lang/String;",(void*)stringFromJNI},
+};
+For "(Ljava/lang/String);" a description, the function has no parameters,
+the return value is String. In brackets is a parameter list, followed by the return value
+Field Descriptor	Java Language Type
+Z	boolean
+B	byte
+C	char
+S	short
+I	int
+J	long
+F	float
+D	double
+For complex types, a string describing the beginning with "L", to ";" the end, such as the Java String, in JNI described 
+as"Ljava/lang/String;"
+For arrays, "[" at the beginning, then describes the type, such as int[], in JNI described as "[I"; String[], corresponding
+to "[Ljava/lang/String;"; if the array dimension increase one-dimensional, "[" add a, such as int[.], corresponding to the"[[I";
