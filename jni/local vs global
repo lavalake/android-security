@@ -1,0 +1,49 @@
+https://www.ibm.com/support/knowledgecenter/SSB23S_1.1.0.15/com.ibm.java.vm.80.doc/docs/jni_refs.html
+Local and global references
+  Local references are scoped to their creating stack frame and thread, and automatically deleted when their creating stack frame
+  returns. Global references allow native code to promote a local reference into a form usable by native code in any thread 
+  attached to the JVM
+  
+Global references and memory leaks
+  Global references are not automatically deleted, so the programmer must handle the memory management.
+  Every global reference establishes a root for the referent and makes its entire subtree reachable.
+  Therefore, every global reference created must be freed to prevent memory leaks.
+  
+To provide JNI global reference capabilities and also provide some automatic garbage collection of the referents, the JNI provides two functions:
+  NewWeakGlobalRef
+  DeleteWeakGlobalRef
+  
+Local references and memory leaks
+  The automatic garbage collection of local references that are no longer in scope prevents memory leaks in most situations. 
+  This automatic garbage collection occurs when a native thread returns to Java (native methods) or 
+  detaches from the JVM (Invocation API).
+  
+  while ( <condition> )
+{
+   jobject myObj = (*env)->NewObject( env, clz, mid, NULL );
+
+   if ( NULL != myObj )
+   {
+      /* we know myObj is a valid local ref, so use it */
+      jclass myClazz = (*env)->GetObjectClass(env, myObj);
+
+      /* uses of myObj and myClazz, etc. but no new local refs */
+
+      /* Without the following calls, we would leak */
+      (*env)->DeleteLocalRef( env, myObj ); 
+      (*env)->DeleteLocalRef( env, myClazz );
+   }
+
+} /* end while */
+
+  Although new local references overwrite the myObj and myClazz variables inside the loop, every local reference is kept in 
+  the root set. These references must be explicitly removed by the DeleteLocalRef call. Without the DeleteLocalRef calls,
+  the local references are leaked until the thread returned to Java or detached from the JVM.
+
+JNI reference management
+  JNI references are valid only in threads attached to a JVM.
+  A valid JNI local reference in native code must be obtained:
+    As a parameter to the native code
+    As the return value from calling a JNI function
+    JNI local references are valid only in the thread that creates them and remain valid only while their creating 
+    frame remains on the stack.
