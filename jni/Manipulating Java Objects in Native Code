@@ -1,0 +1,16 @@
+https://www.developer.com/java/data/manipulating-java-objects-in-native-code.html
+Ways to Manipulate
+  Creating and invoking Java instances
+  Accessing objects/classes
+  Modifying fields inside Java object
+  Using/Invoking static Java methods
+  
+Using a Class Reference
+  The references defined with the jclass and jobject data typea in native code are used to get hold of the Java class object
+  and Java objects
+    jclass jcls=env->FindClass("java/lang/String");
+
+    jobject jobj=env->AllocateObject(jcls);
+ 
+Accessing Fields
+  
