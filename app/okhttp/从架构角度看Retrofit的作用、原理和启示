@@ -1,0 +1,4 @@
+https://cloud.tencent.com/developer/article/1036208
+就是说：Retrofit不直接做网络请求Retrofit不直接做网络请求Retrofit不直接做网络请求重要的事情说三遍
+而Retrofit做的事情，就是为开发者节省这部分的工作量，Retrofit一方面从底层统一用OkHttp去做网络处理；另一方面在外层灵活提供能直接融入业务逻辑的Call网络访问对象
+具体来说，Retrofit只负责生产对象，生产能做网络请求的工作对象，他有点像一个工厂，只提供产品，工厂本身不处理网络请求，产品才能处理网络请求
