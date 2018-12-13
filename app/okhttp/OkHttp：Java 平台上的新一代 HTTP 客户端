@@ -1,0 +1,12 @@
+https://www.ibm.com/developerworks/cn/java/j-lo-okhttp/index.html
+OkHttpClient client = new OkHttpClient();
+ 
+    Request request = new Request.Builder()
+            .url("http://www.baidu.com")
+            .build();
+ 
+    Response response = client.newCall(request).execute();
+    
+    
+ HTTP 头是 HTTP 请求和响应中的重要组成部分
+ 以 String 类型提交内容只适用于内容比较小的情况。当请求内容较大时，应该使用流来提交
