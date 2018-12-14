@@ -1,0 +1,30 @@
+Icon on status bar
+Heads-up notification
+Lock screen notifications
+
+1. Start an Activity from a Notification
+When you start an activity from a notification, you must preserve the user's expected navigation experience. 
+Tapping Back should take the user back through the app's normal work flow to the Home screen, and opening 
+the Recents screen should show the activity as a separate task.
+
+2. Set up a regular activity PendingIntent
+To start a "regular activity" from your notification, set up the PendingIntent using TaskStackBuilder 
+so that it creates a new back stack as follows.
+<!-- MainActivity is the parent for ResultActivity -->
+<activity
+    android:name=".ResultActivity"
+    android:parentActivityName=".MainActivity" />
+    ...
+</activity>
+  Build a PendingIntent with a back stack
+    To start an activity that includes a back stack of activities, you need to create an instance of 
+    TaskStackBuilder and call addNextIntentWithParentStack(), passing it the Intent for the activity you want to start.
+    // Create an Intent for the activity you want to start
+    Intent resultIntent = new Intent(this, ResultActivity.class);
+    // Create the TaskStackBuilder and add the intent, which inflates the back stack
+    TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+    stackBuilder.addNextIntentWithParentStack(resultIntent);
+    // Get the PendingIntent containing the entire back stack
+    PendingIntent resultPendingIntent =
+        stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+  
