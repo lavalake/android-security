@@ -1,0 +1,34 @@
+http://wingjay.com/2016/07/21/%E5%B8%A6%E4%BD%A0%E5%AD%A6%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%EF%BC%9AOkHttp-%E8%87%AA%E5%B7%B1%E5%8A%A8%E6%89%8B%E5%AE%9E%E7%8E%B0okhttp/
+那么从使用者角度而言，需要做的事是：
+
+1. 创建一个Request：在里面设置好目标 URL；请求 method 如 GET/POST 等；一些 header 如 Host、User-Agent 等；如果你在 POST 上传一个表单，
+那么还需要 body。
+2. 将创建好的 Request 传递给WingjayHttpClient。
+3. WingjayHttpClient去执行 Request，并把返回结果封装成一个Response 给用户。而一个 Response 里应该包括 statusCode 如 200，
+一些 header 如 content-type 等，可能还有 body
+
+Sync vs Async call
+For Async call, use callback
+lass AsyncCall {
+	private Request userRequest;
+	private Callback callback;
+	public AsyncCall(Request userRequest, Callback callback) {
+		this.userRequest = userRequest;
+		this.callback = callback;
+	}
+	interface Callback {
+		void onFailure(Call call, IOException e);
+		void onResponse(Call call, Response response) throws IOException;
+	}
+}
+
+4. Dispatcher
+  我们创建一个新的类：Dispatcher，这个类的作用是：
+use synchroized to avoid race condition
+存储外界不断传入的 SyncCall 和AsyncCall，如果用户想取消则可以遍历所有的 call 进行 cancel 操作;
+对于 SyncCall，由于它是即时运行的，因此Dispatcher 只需要在 SyncCall 运行前存储进来，在运行结束后移除即可；
+对于 AsyncCall，Dispatcher 首先启动一个 ExecutorService，不断取出 AsyncCall 去进行执行，然后，我们设置最多执行的 request 数量为 64，
+如果已经有 64 个 request 在执行中，那么就将这个 asyncCall 存入等待区
+
+executorService = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 60, TimeUnit.SECONDS,
+          new SynchronousQueue<Runnable>(), Util.threadFactory("OkHttp Dispatcher", false));
