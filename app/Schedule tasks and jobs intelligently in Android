@@ -1,0 +1,68 @@
+Schedule tasks and jobs intelligently in Android
+https://android.jlelse.eu/schedule-tasks-and-jobs-intelligently-in-android-e0b0d9201777
+There are several APIs available to schedule tasks in Android:
+Alarm Manager
+Job Scheduler
+GCM Network Manager
+Firebase Job Dispatcher
+Sync Adapter
+
+Schedule task in lifetime of your app
+  use Handler class in conjunction with Timer and Thread.
+Schedule task outside the lifetime of your app
+  Alarm Manager
+    We should only use AlarmManager API for tasks that must execute at a specific time
+    Use Case: Let’s say we want to perform a task after 1 hour or every 1 hour
+    
+Job Scheduler
+  This is the chief among all the mentioned scheduling options and perform the background work very efficiently
+  introduced in Android 5.0(API level 21)
+  This API allows to batch jobs when the device has more resources available or when the right conditions are met
+  
+GCM Network Manager
+   has all the schedule features from JobScheduler.
+   GCM Network Manager uses the scheduling engine inside Google Play services so this class will only work if the 
+   Google Play services is installed 
+   
+Firebase Job Dispatcher
+  This library will also works when running device do not have Google play services installed and wants to schedule a job in the application
+  
+  
+  
+Android Scheduling Background Services
+  AlarmManager
+    Advantages :
+      1. It has been there from the beginning, it’s available on every device.
+    Disadvantages:
+      1. You cannot specify requirements that should be met before starting a service
+      2. The API went a lot of changes over the time and its behaviour differs between different Android OS versions
+      
+    Starting from Android 6.0 (API level 23), Android introduced doze
+      1. Standard AlarmManager alarms (including setExact() and setWindow()) are deferred to the next maintenance window
+      2. If you need to set alarms that fire while in Doze, use setAndAllowWhileIdle() or setExactAndAllowWhileIdle().
+      
+  JobScheduler
+    Advantages :
+      1. Easy to use API
+      2. You can specify requirements that should be met before starting a service. Example : A service should only run if the device 
+        is charging and connected to the network. You can specify these conditions using JobScheduler
+    Disadvantages :
+      It is only available on API 21 and above. This is the biggest downside of JobScheduler.
+      
+  GCM Network Manager
+    Advantages :
+      1. It’s API is similar to JobScheduler API.
+      2. minSdkVersion is 9
+    Disadvantages :
+      It is part of Google Play Services SDK
+  Android Job
+    https://github.com/evernote/android-job
+    https://speakerdeck.com/vrallev/doo-z-z-z-z-z-e?slide=51
+ 
+ WorkManager
+    WorkManager is intended for tasks that require a guarantee that the system will run them even if the app exits, 
+    like uploading app data to a server. It is not intended for in-process background work that can safely be terminated 
+    if the app process goes away; for situations like that, we recommend using ThreadPools
+    
+    WorkManager chooses an appropriate way to schedule a background task--depending on the device API level and included
+    dependencies, WorkManager might use JobScheduler, Firebase JobDispatcher, or AlarmManager
