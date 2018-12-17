@@ -1,0 +1,2 @@
+ramdisk.img是编译Android生成的一个镜像文件，最后和kernel一起打包生成boot.img镜像。ramdisk.img中主要是存放android启动后第一个用户进程init
+可执行文件和init.*.rc等相关启动脚本以及sbin目录下的adbd工具
