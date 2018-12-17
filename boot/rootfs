@@ -1,0 +1,6 @@
+rootfs之所以存在，是因为需要在VFS机制下给系统提供最原始的挂载点
+
+rootfs 启动过程
+
+rootfs是ramfs或tmpfs的一种实例，它不能被umount，对于内核而言，rootfs体积小且简单，主要用于确保某些目录不能为空。
+内核挂载rootfs之后需要将ramdisk中的解压到rootfs中
