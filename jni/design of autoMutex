@@ -1,0 +1,5 @@
+design a class, that take a mutex in constructor.
+in constructor, it will lock the mutex.
+in  distructor, it will unlock the mutex.
+Then the lock unlock will automatically handled by system.
+avoid forgetting unlock issue.
