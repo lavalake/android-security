@@ -3,3 +3,4 @@ in constructor, it will lock the mutex.
 in  distructor, it will unlock the mutex.
 Then the lock unlock will automatically handled by system.
 avoid forgetting unlock issue.
+http://mobilerndhub.sec.samsung.net/OG/OG02_7276/xref/android/frameworks/base/services/core/jni/com_android_server_IcccManagerService.cpp#mutex
