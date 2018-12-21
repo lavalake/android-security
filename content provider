@@ -1,0 +1,75 @@
+https://developer.android.com/guide/topics/providers/content-provider-basics
+Overview
+  A content provider presents data to external applications as one or more tables that are similar to the tables found in a 
+  relational database. A row represents an instance of some type of data the provider collects, and each column in the row 
+  represents an individual piece of data collected for an instance
+    Sharing access to your application data with other applications
+    Sending data to a widget
+    Returning custom search suggestions for your application through the search framework
+    Synchronizing application data with your server using an implementation of AbstractThreadedSyncAdapter
+    Loading data in your UI using a CursorLoader
+  A common pattern for accessing a ContentProvider from your UI uses a CursorLoader to run an asynchronous
+  query in the background  
+  The Activity or Fragment in your UI call a CursorLoader to the query, which in turn gets the ContentProvider using the 
+  ContentResolver. This allows the UI to continue to be available to the user while the query is running. 
+  This pattern involves the interaction of a number of different objects, as well as the underlying storage mechanism
+  illustrated in figure 2
+  
+  Table 2: Query() compared to SQL query.
+query() argument       |   	SELECT keyword/parameter	     |       Notes
+Uri	                           FROM table_name	               Uri maps to the table in the provider named table_name.
+projection	                   col,col,col,...	               projection is an array of columns that should be included for each row retrieved.
+selection	                      WHERE col = value	                 selection specifies the criteria for selecting rows.
+selectionArgs	           (No exact equivalent. Selection arguments replace ? placeholders in the selection clause.)
+sortOrder	                   ORDER BY col,col,...	             sortOrder specifies the order in which rows appear in the returned Cursor.
+
+Content URIs
+  A content URI is a URI that identifies data in a provider.
+  Content URIs include the symbolic name of the entire provider (its authority) and a name that points to a table (a path)
+  The ContentResolver object parses out the URI's authority, and uses it to "resolve" the provider by comparing the authority
+  to a system table of known providers
+  content://user_dictionary/words
+  
+  where the user_dictionary string is the provider's authority, and the words string is the table's path
+  Many providers allow you to access a single row in a table by appending an ID value to the end of the URI
+  Uri singleUri = ContentUris.withAppendedId(UserDictionary.Words.CONTENT_URI,4)
+  
+  
+https://developer.android.com/guide/topics/providers/content-provider-creating
+Designing data storage
+  1. retional db (structured data) Room
+  2. unretional db (key value) LevelDB
+  3. file (media)
+  4. Basic Sync Adapter 
+Data design considerations
+  1. Table data should always have a "primary key" column that the provider maintains as a unique numeric value for each row. 
+    using BaseColumns._ID is the best choice
+  2. If you want to provide bitmap images or other very large pieces of file-oriented data, store the data in a file and 
+    then provide it indirectly rather than storing it directly in a table
+    If you do this, you need to tell users of your provider that they need to use a ContentResolver file method to access the data
+  3. Use the Binary Large OBject (BLOB) data type to store data that varies in size or has a varying structure. For example, 
+    you can use a BLOB column to store a protocol buffer or JSON structure
+      You can also use a BLOB to implement a schema-independent table. In this type of table, you define a primary key column, 
+      a MIME type column, and one or more generic columns as BLOB. The meaning of the data in the BLOB columns is indicated 
+      by the value in the MIME type column. This allows you to store different row types in the same table. 
+      The Contacts Provider's "data" table ContactsContract.Data is an example of a schema-independent table.
+      
+  Designing content URIs
+    Content URIs include the symbolic name of the entire provider (its authority) and a name that points to a table or file (a path)
+    Designing an authority
+      To avoid conflicts with other providers, you should use Internet domain ownership (in reverse) as the basis of your provider authority
+      you can define your provider authority as an extension of the name of the package containing the provider
+    Content URI patterns
+      
+ Implementing the ContentProvider class
+    Your implementation of these methods should account for the following:
+
+    1. All of these methods except onCreate() can be called by multiple threads at once, so they must be thread-safe. 
+      To learn more about multiple threads, see the topic Processes and Threads.
+    2. Avoid doing lengthy operations in onCreate()
+    
+    Remember that the Android system must be able to communicate the Exception across process boundaries. Android can do this for the following exceptions that may be useful in handling query errors:
+
+    IllegalArgumentException (You may choose to throw this if your provider receives an invalid content URI)
+    NullPointerException
+    
