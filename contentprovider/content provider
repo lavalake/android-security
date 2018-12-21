@@ -68,8 +68,13 @@ Data design considerations
       To learn more about multiple threads, see the topic Processes and Threads.
     2. Avoid doing lengthy operations in onCreate()
     
-    Remember that the Android system must be able to communicate the Exception across process boundaries. Android can do this for the following exceptions that may be useful in handling query errors:
+    Remember that the Android system must be able to communicate the Exception across process boundaries. 
+    Android can do this for the following exceptions that may be useful in handling query errors:
 
     IllegalArgumentException (You may choose to throw this if your provider receives an invalid content URI)
     NullPointerException
     
+Implementing the onCreate() method
+    The Android system calls onCreate() when it starts up the provider
+    You should perform only fast-running initialization tasks in this method, and defer database creation and data loading 
+    until the provider actually receives a request for the data. 
