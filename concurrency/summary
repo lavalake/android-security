@@ -10,6 +10,10 @@ JobService
 DownloadManager
 Loader
 JobIntentService
+AlarmManager
+  pro: avaiable all API version, easy to use broadcast
+  cos: compatibilities between different version
+       not consider device state: battery, network
 WorkManager
   https://developer.android.com/topic/libraries/architecture/workmanager/
   WorkManager is intended for tasks that require a guarantee that the system will run them even if the app exits, 
