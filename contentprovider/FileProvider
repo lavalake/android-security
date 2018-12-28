@@ -7,3 +7,31 @@ infrastructure.
 
 https://developer.android.com/reference/android/support/v4/content/FileProvider
 https://infinum.co/the-capsized-eight/share-files-using-fileprovider
+
+To specify the FileProvider component itself, add a <provider> element to your app manifest. Set the android:name attribute to
+android.support.v4.content.FileProvider. Set the android:authorities attribute to a URI authority based on a domain you control; 
+for example, if you control the domain mydomain.com you should use the authority com.mydomain.fileprovider. 
+Set the android:exported attribute to false; the FileProvider does not need to be public. Set the android:grantUriPermissions 
+attribute to true, to allow you to grant temporary access to files
+
+You can send the content URI returned by getUriForFile() to another app in an Intent. The client app that receives the content 
+URI can open the file and access its contents by calling ContentResolver.openFileDescriptor to get a ParcelFileDescriptor
+
+Setting up file sharing
+https://developer.android.com/training/secure-file-sharing/setup-sharing
+// Get the file's content URI from the incoming Intent
+            Uri returnUri = returnIntent.getData();
+            /*
+             * Try to open the file for "read" access using the
+             * returned URI. If the file isn't found, write to the
+             * error log and return.
+             */
+            try {
+                /*
+                 * Get the content resolver instance for this context, and use it
+                 * to get a ParcelFileDescriptor for the file.
+                 */
+                mInputPFD = getContentResolver().openFileDescriptor(returnUri, "r");
+                
+The method openFileDescriptor() returns a ParcelFileDescriptor for the file. From this object, the client app gets a 
+FileDescriptor object, which it can then use to read the file
