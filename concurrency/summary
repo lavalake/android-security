@@ -6,4 +6,10 @@ JobService
   Required some condition running in background. For Example: sync photo with cloud. Need power connected, network connected.
   runs on Main Thread. So need to offload if need
 DownloadManager
+Loader
 JobIntentService
+WorkManager
+  https://developer.android.com/topic/libraries/architecture/workmanager/
+  WorkManager is intended for tasks that require a guarantee that the system will run them even if the app exits, 
+  like uploading app data to a server. It is not intended for in-process background work that can safely be terminated 
+  if the app process goes away; for situations like that, we recommend using ThreadPools.
