@@ -2,3 +2,13 @@ https://developer.android.com/topic/libraries/architecture/workmanager/
 WorkManager is intended for tasks that require a guarantee that the system will run them even if the app exits, 
 like uploading app data to a server. It is not intended for in-process background work that can safely be terminated if 
 the app process goes away; for situations like that, we recommend using ThreadPools.
+
+Worker: specifies what task you need to perform.
+WorkRequest: represents an individual task.specifying things like the circumstances under which the task should run
+  OneTimeWorkRequest or PeriodicWorkRequest
+Example
+  you're writing a photo library app, and that app needs to periodically compress its stored images
+
+Chained tasks
+  Your app might need to run several tasks in a particular order
+   WorkManager allows you to create and enqueue a work sequence that specifies multiple tasks
