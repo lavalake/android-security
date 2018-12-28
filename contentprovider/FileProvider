@@ -1,0 +1,9 @@
+In comparison, to control access to a file:/// Uri you have to modify the file system permissions of the underlying file. 
+The permissions you provide become available to any app, and remain in effect until you change them. 
+This level of access is fundamentally insecure.
+
+The increased level of file access security offered by a content URI makes FileProvider a key part of Android's security 
+infrastructure.
+
+https://developer.android.com/reference/android/support/v4/content/FileProvider
+https://infinum.co/the-capsized-eight/share-files-using-fileprovider
