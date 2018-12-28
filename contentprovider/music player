@@ -1,0 +1,38 @@
+https://code.tutsplus.com/tutorials/create-a-music-player-on-android-project-setup--mobile-22764
+https://code.tutsplus.com/tutorials/create-a-music-player-on-android-user-controls--mobile-22787
+
+Building the music player will involve using 
+1. the ContentResolver class to retrieve tracks on the device, 
+2. the MediaPlayer class to play audio and 
+3. the MediaController class to control playback. 
+    SeekBar instance displays the progress of playback as well as letting the user skip to particular locations in a track.
+    We will use the Notification and PendingIntent classes to display the title of the currently playing track and let 
+    the user navigate back to the app
+    we will implement a class to extend  android.widget.MediaController
+    
+    Implement Playback Control
+      MainActivity will bind to the service
+      service will call the mediaPlayer to playback
+      
+4. We will also use a Service instance to play audio when the user is not directly interacting with the app
+  Remember that we are going to continue playback even when the user navigates away from the app. In order
+  to facilitate this, we will display a notification showing the title of the track being played. Use pendingIntent to
+  go back to APP from status bar
+  
+  
+  Intent notIntent = new Intent(this, MainActivity.class);
+notIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+PendingIntent pendInt = PendingIntent.getActivity(this, 0,
+  notIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+ 
+Notification.Builder builder = new Notification.Builder(this);
+ 
+builder.setContentIntent(pendInt)
+  .setSmallIcon(R.drawable.play)
+  .setTicker(songTitle)
+  .setOngoing(true)
+  .setContentTitle(&quot;Playing&quot;)
+  .setContentText(songTitle);
+Notification not = builder.build();
+ 
+startForeground(NOTIFY_ID, not);
