@@ -5,9 +5,17 @@ ThreadPool
 JobService
   Required some condition running in background. For Example: sync photo with cloud. Need power connected, network connected.
   runs on Main Thread. So need to offload if need
-  API 14+ devices
+  API 21+ devices
   
 DownloadManager
+GcmNetworkManager
+  只有在安装有Google Play的设备上可用
+  优点
+
+  跟JobScheduler相似的API
+  要求minSdkVersion 9
+  
+  
 Loader
 JobIntentService
 AlarmManager
