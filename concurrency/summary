@@ -5,6 +5,8 @@ ThreadPool
 JobService
   Required some condition running in background. For Example: sync photo with cloud. Need power connected, network connected.
   runs on Main Thread. So need to offload if need
+  API 14+ devices
+  
 DownloadManager
 Loader
 JobIntentService
