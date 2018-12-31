@@ -1,0 +1,20 @@
+https://medium.com/@nik.arora8059/memory-management-in-android-3bdf307c8e23
+1. Be careful about using a design pattern with “abstraction”
+2. Avoid using “enum”. Enum will double memory allocation than ordinary static constant
+3. Try to use the optimized SparseArray, SparseBooleanArray, and LongSparseArray containers instead of HashMap
+4. Avoid creating unnecessary objects. 
+5. Check the available heap of your application.
+6. Coordinate with the system by implementing onTrimMemory() callback
+7. External libraries should be used carefully. 
+8. Services should be used with caution.
+9. But if you are building an app that needs to run for a long period of time, e.g., a music player service, you should split it into two processes
+10. Avoid wasting memory with bitmaps. keep it in RAM only at the resolution you need for the current device’s screen,
+  scaling it down if the original bitmap is a higher resolution. 
+
+How to Avoid Memory Leaks
+1. Remember to close the cursor after querying the database. 
+2. Remember to call unregisterReceiver() after calling registerReceiver()
+3. Avoid Context leakage
+  Do not keep long-lived references to a context-activity
+  Try using the context-application instead of a context-activity
+4. Be careful about using Threads.Threads in Java are garbage collection roots
