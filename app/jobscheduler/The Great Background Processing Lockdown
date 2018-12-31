@@ -1,0 +1,7 @@
+https://arstechnica.com/gadgets/2017/09/android-8-0-oreo-thoroughly-reviewed/4/
+The goal of locking down background processing is not only improve battery life but also to better manage memory 
+so the device runs more smoothly
+
+No more wakelocks, no silent background services
+In Android parlance, this is a "wakelock"—an single app's ability to keep the phone awake to do processing work.
+AnAdroid 8.0 is clamping down on wakelocks—an app's wakelocks will be automatically released by the system when the app is "idle." 
