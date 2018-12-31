@@ -1,0 +1,7 @@
+https://developer.android.com/guide/practices/verifying-apps-art
+Preventing stack size issues
+  Dalvik had separate stacks for native and Java code, with a default Java stack size of 32KB and a default native stack size 
+  of 1MB. ART has a unified stack for better locality.
+Object model changes
+  Dalvik incorrectly allowed subclasses to override package-private methods
+  If you intend to override a class's method in a different package, declare the method as public or protected
