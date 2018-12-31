@@ -1,3 +1,5 @@
+use system resources in the background regardless app execution.operates at the system level
+focus on batching similar work requests together, which results in a noticeable improvement for both battery and memory
 1. By default, JobService runs on the main thread
 2. id is a important key for identifying your job
 3. It is important to determine the appropriate scenario between the consumption of the battery and the 
@@ -59,4 +61,68 @@ JobService的使用及源码分析
     如果使用AIDL（当然也可以使用Messenger）就可以很容易实现了
 
 https://medium.com/google-developers/scheduling-jobs-like-a-pro-with-jobscheduler-286ef8510129
+https://developer.android.com/about/versions/oreo/background#broadcasts
+Background Execution Limits
+   The system distinguishes between foreground and background apps
+   An app is considered to be in the foreground if any of the following is true:
+
+      It has a visible activity, whether the activity is started or paused.
+      It has a foreground service.
+      Another foreground app is connected to the app, either by binding to one of its services or by making use of one of
+      its content providers
+      
+      When an app goes into the background, it has a window of several minutes in which it is still allowed to create and use services
+      
+   An app is placed on the whitelist when it handles a task that's visible to the user, such as:
+
+      Handling a high-priority Firebase Cloud Messaging (FCM) message.
+      Receiving a broadcast, such as an SMS/MMS message.
+      Executing a PendingIntent from a notification.
+      Starting a VpnService before the VPN app promotes itself to the foreground
+      
+      IntentService
+          IntentService is a service, and is therefore subject to the new restrictions on background services. As a result, 
+          many apps that rely on IntentService do not work properly when targeting Android 8.0 or higher. For this reason, 
+          Android Support Library 26.0.0 introduces a new JobIntentService class, which provides the same functionality as
+          IntentService but uses jobs instead of services when running on Android 8.0 or higher
+          
+      Implicit broadcast intent    
+      Implicit Broadcast Intent is a broadcast intent that does not target specific apps.
+      
+      ForgroundService
+      startServiceInForeground()
+      Foreground services are available without restrictions. However, it is not possible to set it up as a foreground service
+      because the service can not be started in the background state in the first place
+      
+      Background Location Limits
+      https://developer.android.com/about/versions/oreo/background-location-limits
+      limits how frequently background apps can retrieve the user's current location. 
+      Apps can receive location updates only a few times each hour.
+      you can retrieve location updates more frequently by performing one of the following actions:
+         1. Bring your app to the foreground.
+         2. Start a foreground service in your app by calling startForegroundService(). When such a foreground service is active,
+            it appears as an ongoing notification in the notification area.
+         3. Use elements of the Geofencing API, such as the GeofencingApi interface, which are optimized for minimizing power use
+         4. Use a passive location listener, which may receive faster location updates if there are foreground apps requesting
+            location updates at a faster rate
+      WakeLock
+      Job execution shares their life with Wakelock
+      The number of WakeLock and the time are critical value to calculate the battery drain for that app
 https://www.youtube.com/watch?time_continue=538&v=hbLAzwhBjFE
+https://medium.com/google-developers/scheduling-jobs-like-a-pro-with-jobscheduler-286ef8510129
+JobService
+   !!!!!!Your JobService will run on the main thread!!!!!
+   onStartJob()
+   is called by the system when it is time for your job to execute.
+   if your task is short and simple, feel free to implement the logic directly in onStartJob() and return false
+   if you need to do a more complicated task, like connecting to the network, you’ll want to kick off a background thread 
+   and return true, letting the system know that you have a thread still running and it should hold on to your wakelock
+   for a while longer
+   jobFinished() 
+   is not a method you override, and the system won’t call it. 
+   That’s because you need to be the one to call this method once your service or thread has finished working on the job
+   onStopJob() 
+   is called by the system if the job is cancelled before being finished.
+   This generally happens when your job conditions are no longer being met
+   consider trying to shorten your job. For example, if your download never finishes, have your server split the download
+   into smaller packets that can be retrieved quicker
