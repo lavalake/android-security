@@ -1,0 +1,5 @@
+数据存储与访问之——SharedPreferences保存用户偏好参数
+http://www.runoob.com/w3cnote/android-tutorial-sharedpreferences.html
+When the user uninstalls your app, the files saved on the internal storage are removed. Because of this behavior, 
+you should not use internal storage to save anything the user expects to persist independenly of your app
+how to presist data even app uninstalled?
