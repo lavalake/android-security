@@ -1,0 +1,18 @@
+1. how to presist data even app uninstalled?
+2. internal vs external storage
+  For example, if your app allows users to capture photos, the user would expect that they can access those photos even
+  after they uninstall your app. So you should instead save those types of files to the public external storage.
+3. Internal cache files
+  Each app has a private cache directory specifically for these kinds of files
+  You should always maintain the cache files yourself and stay within a reasonable limit of space consumed, such as 1MB
+4. external storage
+  Most often, you should use external storage for user data that should be accessible to other apps and saved even if 
+  the user uninstalls your app, such as captured photos or downloaded files
+  public files: not deleted
+  private files: deleted
+5. sharedPreference
+  If you don't need to store a lot of data and it doesn't require structure, you should use SharedPreferences. 
+  read and write persistent key-value pairs of primitive data types: booleans, floats, ints, longs, and strings
+  do not call apply in UI thread. It's synchronos and could blocking
+  getDefaultSharedPreferences is used for APP settings
+6. Room persistence library
