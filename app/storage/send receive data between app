@@ -1,0 +1,31 @@
+Receiving simple data from other apps
+  Intent filters inform the system what intents an application component is willing to accept.For example, i
+  f your application handles receiving text content, a single image of any type, or multiple images of any type, your manifest would look like:
+
+<activity android:name=".ui.MyActivity" >
+    <intent-filter>
+        <action android:name="android.intent.action.SEND" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="image/*" />
+    </intent-filter>
+    <intent-filter>
+        <action android:name="android.intent.action.SEND" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="text/plain" />
+    </intent-filter>
+    <intent-filter>
+        <action android:name="android.intent.action.SEND_MULTIPLE" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="image/*" />
+    </intent-filter>
+</activity>
+
+2. transfer bitmap between activity
+  1. use static variable in the class to store reference of bitmap
+  2. store to file
+  3. store to external media store and use content provider
+  4. use ashm
+3. transfer bitmap between apps
+  1. use content provider
+  2. user file provider
+  3. use ashm
