@@ -1,0 +1,15 @@
+1. transaction
+写在事务里的所有数据库操作都成功，事务提交，否则，事务回滚，就是回到前面 的状态——未执行数据库操作的时候！
+还有一个xxx.db-journal这个文件就是用来让数据库支持事务而 产生的 临时的日志文件
+2. Room
+  There are 3 major components in Room:
+
+  1. Database: Contains the database holder and serves as the main access point for the underlying connection to your app's 
+  persisted, relational data.
+  2. Entity: Represents a table within the database.
+  3. DAO: Contains the methods used for accessing the database
+  
+3. singleton
+  If your app runs in a single process, you should follow the singleton design pattern when instantiating an 
+  AppDatabase object. Each RoomDatabase instance is fairly expensive, and you rarely need access to multiple 
+  instances within a single process
