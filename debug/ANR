@@ -1,0 +1,10 @@
+ANR问题相信这个问题在座的各种没少遇到过，那么什么是ANR？application not  responding。应用程序无响应。那么一般什么时候会出现ANR。
+Android官方规定：
+activity如果5s内无响应事件（屏幕触摸事件或者键盘输入事件）。
+BroadcastReceiver如果在10s内无法处理完成。
+Service如果20s内无法处理完成。这三种情况会导致ANR
+
+作者：我就是马云飞
+链接：https://juejin.im/post/5a0d30e151882546d71ee49e
+来源：掘金
+著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
