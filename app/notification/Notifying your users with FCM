@@ -1,0 +1,35 @@
+https://android-developers.googleblog.com/2018/09/notifying-your-users-with-fcm.html
+There are two types of FCM messages you can choose from:
+
+Notification Messages, which simplify notification handling and are high priority by default.
+Data Messages, for when you want to handle the FCM messages within the client app.
+
+ For example, a common use case for a normal priority FCM Data Message is to tell the app when there's content ready for sync,
+ which requires no user interaction. The sync should happen quietly in the background, with no need for a notification, and you
+ can use the WorkManager1 or JobScheduler API to schedule the sync.
+ 
+ The same applies to data sync--we recommend that your app send as much data as possible in the FCM payload and, if needed, 
+ load the remainder of the data when the app opens
+ 
+ As convenient as FCM message payload is, it comes with a 4KB maximum limit.you may need more than the 4KB payload limit. 
+ For this, we recommend using FCM messages in combination with the WorkManager 1 or JobScheduler API.
+ 
+ Avoid background services
+  Starting a background service will lead to IllegalStateException from a normal priority FCM message
+  High priority messages do grant you a short whitelist window that allows you to start a background service.
+  However, starting a background service with a network call will put the service at risk of getting terminated by the system
+  
+Doze Mode
+
+
+https://firebase.googleblog.com/2018/09/handle-fcm-messages-on-android.html
+Handle FCM messages on Android
+  When using an FCM notification message, the system handles showing the notification on behalf of 
+  your app when it's in the background
+  
+   When your app is in the foreground, the FCM notification message is delivered to the onMessageReceived()handler
+   and you can handle it by posting a notification if needed or update the app content with the FCM payload data (Max 4KB)
+   or fetch content from app server.
+ Data Message
+ You should use data messages if you need to handle the notification in the client app, whether to customize the notification
+ or to decrypt the received payload data.
