@@ -1,0 +1,6 @@
+Intent sendIntent = new Intent();
+sendIntent.setAction(Intent.ACTION_SEND);
+sendIntent.putExtra(Intent.EXTRA_TEXT, "This is my text to send.");
+sendIntent.setType("text/plain");
+or use bundle. Bundle make it easier to share data between apps
+sendIntent.putExtra(bundle) A->B->C
