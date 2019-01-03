@@ -33,3 +33,13 @@ Handle FCM messages on Android
  Data Message
  You should use data messages if you need to handle the notification in the client app, whether to customize the notification
  or to decrypt the received payload data.
+
+
+Receive messages in an Android app
+https://firebase.google.com/docs/cloud-messaging/android/receive
+In summary:
+
+App state	           Notification	                     Data	                           Both
+Foreground	        onMessageReceived	            onMessageReceived	              onMessageReceived
+Background	          System tray	                onMessageReceived	             Notification: system tray
+                                                                                 Data: in extras of the intent.
