@@ -1,0 +1,9 @@
+https://medium.com/inloopx/using-android-fragments-in-2018-b9cf0b05b718
+The solution is simple — just don’t do it :-). Do not put any kind of this business logic and asynchronous work into your
+fragments since it will never play well with the Fragment/Activity lifecycle. ViewModel is the place where you want to 
+put that code.
+
+They’re kept inside headless retained Fragments during the orientation change. Pretty neat. But for the love of God, don’t 
+use Retained Fragments in regular screens. They’re not really meant to be used with an actual UI.
+
+The Fragment or Activity should just have the responsibility of displaying the data and capturing/forwarding the user input.
