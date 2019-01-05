@@ -1,0 +1,3 @@
+This widget is a container for displaying large data sets that can be scrolled very efficiently by maintaining a limited number of views
+https://www.jianshu.com/p/467ae8a7ca6e
+RecyclerView回收和复用机制分析
