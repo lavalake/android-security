@@ -1,3 +1,5 @@
 This widget is a container for displaying large data sets that can be scrolled very efficiently by maintaining a limited number of views
 https://www.jianshu.com/p/467ae8a7ca6e
 RecyclerView回收和复用机制分析
+列表页展示界面，需要支持动画，或者频繁更新，局部刷新，建议使用RecyclerView，更加强大完善，易扩展；其它情况(如微信卡包列表页)两者都OK，但ListView在使用上会更加方便，快捷。
+https://zhuanlan.zhihu.com/p/23339185
