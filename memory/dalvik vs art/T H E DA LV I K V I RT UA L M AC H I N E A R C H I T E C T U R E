@@ -1,0 +1,16 @@
+In standard Java environments, Java source code is compiled into Java bytecode, which is stored
+within .class files
+On the Android platform, Java source code is still compiled into .class files. But after .class files
+are generated, the “dx” tool is used to convert the .class files into a .dex,
+Whereas a .class file contains only one class, a .dex file contains multiple classes
+2.Zygote 
+  Android uses a concept called the Zygote to enable both sharing of code across VM instances and
+  to provide fast startup time of new VM instances.
+  The Zygote design assumes that there are a
+  significant number of core library classes and corresponding heap structures that are used across
+   It also assumes that these heap structures are generally read-only
+   
+   The Zygote is a VM process that starts at system boot time
+   
+   In traditional Java VM design, each instance of the VM will have an entire copy of the core
+    library class files and any associated heap objects. Memory is not shared across instances
