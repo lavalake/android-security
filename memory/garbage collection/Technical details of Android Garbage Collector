@@ -1,0 +1,18 @@
+https://stackoverflow.com/questions/4818869/technical-details-of-android-garbage-collector
+Android 3.0 is the first version of the platform designed to run on either single or multicore processor architectures. 
+A variety of changes in the Dalvik VM, Bionic library, and elsewhere add support for symmetric multiprocessing in 
+multicore environments. These optimizations can benefit all applications, even those that are single-threaded. 
+For example, with two active cores, a single-threaded application might still see 
+a performance boost if the Dalvik garbage collector runs on the second core. The system will arrange for this automatically."
+
+1. the Dalvik VM indeed does use a tracing garbage collector, using a Mark and Sweep approach.
+2. From Android 5.0 (Lollipop) and on, Dalvik was replaced with the Android Runtime (ART).
+3. Improved garbage collection
+
+4. Garbage collection (GC) can impair an app's performance, resulting in choppy display, poor UI responsiveness, and other problems. ART improves garbage collection in several ways:
+
+  One GC pause instead of two
+  Parallelized processing during the remaining GC pause
+  Collector with lower total GC time for the special case of cleaning up recently-allocated, short-lived objects
+  Improved garbage collection ergonomics, making concurrent garbage collections more timely, which makes GC_FOR_ALLOC events extremely rare in typical use cases Compacting GC 
+  to reduce background memory usage and fragmentation
