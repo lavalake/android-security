@@ -1,0 +1,3 @@
+https://blog.classycode.com/dealing-with-exceptions-in-aidl-9ba904c6d63
+So for AIDL calls that are not marked as oneway (asynchronous), a RuntimeException occurring 
+in the stub implementation will actually be written back to the client
