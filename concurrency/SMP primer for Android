@@ -1,0 +1,183 @@
+1. reorder
+2. volatile C++ vs Java
+  volatile in c/c++ is used to access hardware registers not for mutil thread. This disallow compiler to optimize out variable.
+  but not disable reorder.C volatile usually does not prevent access reordering by the hardware
+  
+3. volatile vs atomic
+4. Visibility
+  A writing thread releases a synchronization lock and a reading thread subsequently acquires that same synchronization lock
+  releasing a lock forces a flush of all writes from working memory employed by the thread, and acquiring a lock forces a (re)load of the values of accessible fields
+Thread 1	
+A = 3
+B = 5	
+Thread 2
+reg0 = B
+reg1 = A
+
+ARM, on the other hand, does not. The order of buffered stores is not maintained, and stores may not reach all
+other cores at the same time
+
+However, as we will see below, C, C++, or Java programmers can and should program in a way
+that hides such architectural differences.
+
+1. volatile
+  It's important to note that volatile has very different meanings in C++ and Java. 
+  In C++, volatile does not prevent data races, though older code often uses it as a workaround for the lack of atomic objects
+  This is no longer recommended; in C++, use atomic<T> for variables that can be concurrently accessed by multiple threads
+  
+  C/C++ atomic variables or Java volatile variables can be used to prevent data races on other variables
+2. When memory reordering becomes visible
+  For example, if we forgot to declare flag volatile in the preceding example, Thread 2 may see an uninitialized A. 
+  Or the compiler may decide that flag can't possibly change during Thread 2's loop and transform the program to
+  When you debug, you may well see the loop continuing forever in spite of the fact that flag is true
+  
+  C++ provides facilities for explicitly relaxing sequential consistency even if there are no races. 
+  Atomic operations can take explicit memory_order_... arguments. Similarly, the java.util.concurrent.atomic package 
+  provides a more restricted set of similar facilities
+  
+  Some C and C++ code is written in an older style, not entirely consistent with current language standards, in which 
+  volatile variables are used instead of atomic ones, and memory ordering is explicitly disallowed by inserting so called 
+  fences or barriers.
+  
+  What not to do in C
+    1. C/C++ and "volatile"
+
+    C and C++ volatile declarations are a very special purpose tool. They prevent the compiler from 
+    reordering or removing volatile accesses.
+    This can be helpful for code accessing hardware device registers
+    But C and C++ volatile, unlike Java volatile, is not designed for thread communication.
+    In C and C++, accesses to volatile data may be reordered with accessed to non-volatile data, and there are no atomicity guarantees
+    
+  What not to do in Java
+    Java's "synchronized" and "volatile" keywords
+      Java's volatile T is the analog of C++11's atomic<T>. But java volatile only guarantee access order of volatile variable.
+      does not guarantee the atomic update. Atomic increment operations are instead provided by the java.util.concurrent.atomic
+      
+      if (helper == null) {
+    synchronized() {
+        if (helper == null) {
+            newHelper = malloc(sizeof(Helper));
+            newHelper->x = 5;
+            newHelper->y = 10;
+            helper = newHelper;
+        }
+    }
+    return helper;
+}There are two ways to fix this:
+
+Do the simple thing and delete the outer check. This ensures that we never examine the value of helper outside a synchronized block.
+Declare helper volatile. With this one small change, the code in Example J-3 will work correctly on Java 1.5 and later. (You may want to take a minute to convince yourself that this is true.)
+
+What to do
+
+In C/C++, prefer C++11 synchronization classes, such as std::mutex. If not, use the corresponding pthread operations.
+For example, remember that condition variable waits may spuriously return without being signaled, and should thus appear in a loop
+
+It's best to avoid using atomic functions directly, unless the data structure you are implementing is extremely simple, like a counter
+
+Locking and unlocking a pthread mutex require a single atomic operation each, and often cost less than a single cache miss, 
+if there’s no contention, so you’re not going to save much by replacing mutex calls with atomic ops. 
+
+Avoid using volatile for thread communication in C/C++.
+
+Perhaps the safest thing you can do is make your objects immutable
+
+Even if an object is immutable, remember that communicating it to another thread without any kind of synchronization is a data race.
+the Java synchronized statement or C++ lock_guard / unique_lock should be used to guard accesses to any field that can be accessed by more than one thread.
+
+The "Double-Checked Locking is Broken" Declaration
+// Broken multithreaded version
+// "Double-Checked Locking" idiom
+class Foo { 
+  private Helper helper = null;
+  public Helper getHelper() {
+    if (helper == null) 
+      synchronized(this) {
+        if (helper == null) 
+          helper = new Helper();
+      }    
+    return helper;
+    }
+  // other functions and members...
+  }
+  
+  The most obvious reason it doesn't work it that the writes that initialize the Helper object and the write to the helper 
+  field can be done or perceived out of order
+  
+  Making it work with explicit memory barriers
+
+It is possible to make the double checked locking pattern work if you have explicit memory barrier instructions. For example, if you are programming in C++, you can use the code from Doug Schmidt et al.'s book:
+
+// C++ implementation with explicit memory barriers
+// Should work on any platform, including DEC Alphas
+// From "Patterns for Concurrent and Distributed Objects",
+// by Doug Schmidt
+template <class TYPE, class LOCK> TYPE *
+Singleton<TYPE, LOCK>::instance (void) {
+    // First check
+    TYPE* tmp = instance_;
+    // Insert the CPU-specific memory barrier instruction
+    // to synchronize the cache lines on multi-processor.
+    asm ("memoryBarrier");
+    if (tmp == 0) {
+        // Ensure serialization (guard
+        // constructor acquires lock_).
+        Guard<LOCK> guard (lock_);
+        // Double check.
+        tmp = instance_;
+        if (tmp == 0) {
+                tmp = new TYPE;
+                // Insert the CPU-specific memory barrier instruction
+                // to synchronize the cache lines on multi-processor.
+                asm ("memoryBarrier");
+                instance_ = tmp;
+        }
+    return tmp;
+    }
+    
+    
+   Java does not have memory barriar
+   Fixing Double-Checked Locking using Volatile
+   JDK5 and later extends the semantics for volatile so that the system will not allow a write of a volatile to be reordered 
+   with respect to any previous read or write, and a read of a volatile cannot be reordered with respect to any following
+   read or write.
+   
+   With this change, the Double-Checked Locking idiom can be made to work by declaring the helper field to be volatile. 
+   This does not work under JDK4 and earlier.
+
+// Works with acquire/release semantics for volatile
+// Broken under current semantics for volatile
+  class Foo {
+        private volatile Helper helper = null;
+        public Helper getHelper() {
+            if (helper == null) {
+                synchronized(this) {
+                    if (helper == null)
+                        helper = new Helper();
+                }
+            }
+            return helper;
+        }
+    }
+
+http://gee.cs.oswego.edu/dl/cpj/jmm.html
+
+Synchronization and the Java Memory Model
+1. Note the double meaning of synchronized: it deals with locks that permit higher-level synchronization protocols,
+while at the same time dealing with the memory system
+2. If a field is declared as volatile, any value written to it is flushed and made visible by the writer thread before
+the writer thread performs any further memory operation
+
+3. Volatile
+
+In terms of atomicity, visibility, and ordering, declaring a field as volatile is nearly identical in effect to 
+using a little fully synchronized class protecting only that field via get/set methods, as in:
+final class VFloat {
+  private float value;
+
+  final synchronized void  set(float f) { value = f; }
+  final synchronized float get()        { return value; }
+}
+
+Declaring a field as volatile differs only in that no locking is involved. In particular, composite read/write operations
+such as the "++'' operation on volatile variables are not performed atomically.
