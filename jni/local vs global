@@ -47,3 +47,11 @@ JNI reference management
     As the return value from calling a JNI function
     JNI local references are valid only in the thread that creates them and remain valid only while their creating 
     frame remains on the stack.
+
+
+https://chidoo74.blog.me/10140702659
+
+When Java calls a user-created JNI function in C / C ++, one local reference table is created. In the meantime, whether you are calling the Java side from the JNI side or creating a new object using the JNI Helper API, they are unconditionally registered in the Local Reference Table. These objects are automatically destroyed by Java's Garbage Collector when the user's JNI function returns (also Java ... automatically takes care of everything)
+
+The problem is that the size of this table differs depending on the platform. In the case of the Android platform, this number allows for a massive number of 512 maximum permissible limits. Java in the desktop or server environment does not seem to be so. ㅠ ㅠ However, because it says so, I have to adapt to the given environment.
+[Reference] How to deal with Local Reference Overflow error in Android JNI coding
