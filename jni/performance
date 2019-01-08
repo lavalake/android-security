@@ -1,0 +1,55 @@
+根据上面的测试数据得知，查找class和ID(属性和方法ID)消耗的时间比较大。只是读取字段值的时间基本上跟上面的JNI空方法是一个数量级。而如果每次都根据名称查找class和field的话，性能要下降高达40倍。读取一个字段值的性能在百万级上，在交互频繁的JNI应用中是不能忍受的。 消耗时间最多的就是查找class，因此在native里保存class和member id是很有必要的
+
+
+JNIEXPORT void JNICALL Java_com_study_jnilearn_AccessCache_accessField
+  (JNIEnv *env, jobject obj)
+{
+    // 第一次访问时将字段存到内存数据区，直到程序结束才会释放，可以起到缓存的作用
+    static jfieldID fid_str = NULL;
+    jclass cls_AccessCache;
+    jstring j_str;
+    const char *c_str;
+    cls_AccessCache = (*env)->GetObjectClass(env, obj); // 获取该对象的Class引用
+    if (cls_AccessCache == NULL) {
+        return;
+    }
+
+    // 先判断字段ID之前是否已经缓存过，如果已经缓存过则不进行查找
+    if (fid_str == NULL) {
+        fid_str = (*env)->GetFieldID(env,cls_AccessCache,"str","Ljava/lang/String;");
+
+        // 再次判断是否找到该类的str字段
+        if (fid_str == NULL) {
+            return;
+        }
+    }
+
+    j_str = (*env)->GetObjectField(env, obj, fid_str);  // 获取字段的值
+    c_str = (*env)->GetStringUTFChars(env, j_str, NULL);
+--------------------- 
+作者：xyang0917 
+来源：CSDN 
+原文：https://blog.csdn.net/xyang81/article/details/44279725 
+版权声明：本文为博主原创文章，转载请附上博文链接！
+jmethodID MID_AccessCache_callback;
+
+JNIEXPORT void JNICALL Java_com_study_jnilearn_AccessCache_initIDs
+(JNIEnv *env, jclass cls)
+{
+    printf("initIDs called!!!\n");
+    MID_AccessCache_callback = (*env)->GetMethodID(env,cls,"callback","()V");
+}
+
+--------------------- 
+作者：xyang0917 
+来源：CSDN 
+原文：https://blog.csdn.net/xyang81/article/details/44279725 
+版权声明：本文为博主原创文章，转载请附上博文链接！
+如果在写JNI接口时，不能控制方法和字段所在类的源码的话，用使用时缓存比较合理。但比起类静态初始化时缓存来说，用使用时缓存有一些缺点： 
+1. 使用前，每次都需要检查是否已经缓存该ID或Class引用 
+2. 如果在用使用时缓存的ID，要注意只要本地代码依赖于这个ID的值，那么这个类就不会被unload。另外一方面，如果缓存发生在静态初始化时，当类被unload或reload时，ID会被重新计算。因为，尽量在类静态初始化时就缓存字段ID、方法ID和类的Class引用
+--------------------- 
+作者：xyang0917 
+来源：CSDN 
+原文：https://blog.csdn.net/xyang81/article/details/44279725 
+版权声明：本文为博主原创文章，转载请附上博文链接！
