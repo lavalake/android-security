@@ -49,9 +49,23 @@ JNI reference management
     frame remains on the stack.
 
 
+[Reference] How to deal with Local Reference Overflow error in Android JNI coding
 https://chidoo74.blog.me/10140702659
 
-When Java calls a user-created JNI function in C / C ++, one local reference table is created. In the meantime, whether you are calling the Java side from the JNI side or creating a new object using the JNI Helper API, they are unconditionally registered in the Local Reference Table. These objects are automatically destroyed by Java's Garbage Collector when the user's JNI function returns (also Java ... automatically takes care of everything)
+When Java calls a user-created JNI function in C / C ++, one local reference table is created.
+In the meantime, whether you are calling the Java side from the JNI side or creating a new object using the JNI Helper API, 
+they are unconditionally registered in the Local Reference Table. These objects are automatically destroyed by Java's Garbage
+Collector when the user's JNI function returns (also Java ... automatically takes care of everything)
 
-The problem is that the size of this table differs depending on the platform. In the case of the Android platform, this number allows for a massive number of 512 maximum permissible limits. Java in the desktop or server environment does not seem to be so. ㅠ ㅠ However, because it says so, I have to adapt to the given environment.
-[Reference] How to deal with Local Reference Overflow error in Android JNI coding
+The problem is that the size of this table differs depending on the platform. In the case of the Android platform,
+this number allows for a massive number of 512 maximum permissible limits. Java in the desktop or server environment does 
+not seem to be so. ㅠ ㅠ However, because it says so, I have to adapt to the given environment.
+
+There are three ways to adapt to a sophisticated Android environment:
+
+1. If you are clear about the part related to object creation and the part where you can release it, the developer clears it.
+If you used the JNI Helper API to create objects, delete them by calling the DeleteLocalRef () function.
+Typically, the API to create an object is as follows.
+GetObjectClass () - In Java, the class itself is an object! Do not forget ~ ~
+CallObjectMethod () - If an object that is not a primitive type is returned, it must be managed (deleted) at the user code level.
+NewXXX () - If you are creating a new object at the JNI level, you must remove it. (NewString () or NewStringUTF () must be handled as well, since these are objects too.)
