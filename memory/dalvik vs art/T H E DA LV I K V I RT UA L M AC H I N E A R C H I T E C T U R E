@@ -14,3 +14,29 @@ Whereas a .class file contains only one class, a .dex file contains multiple cla
    
    In traditional Java VM design, each instance of the VM will have an entire copy of the core
     library class files and any associated heap objects. Memory is not shared across instances
+
+https://developer.android.com/topic/performance/memory-overview
+3. 
+Overview of memory management
+
+  
+
+Garbage collection
+
+ Android’s memory heap is a generational one, meaning that there are different buckets of allocations that it tracks,
+ based on the expected life and size of an object being allocated.
+ The system has a running set of criteria for determining when to perform garbage collection. When the criteria are satisfied,
+ the system stops executing the process and begins garbage collection
+
+Generational GC
+  https://ieeexplore.ieee.org/document/7818696
+  Generational GC separates objects into two generations, young and old generations.
+  The GC expect that young objects will probably die in the near future based on the hypothesis that most objects die young
+Implementation of the GC of ART
+  The default GC algorithm of ART is CMS GC
+  CMS focus on reducing STW time. It lets applications run during GC.
+  With MS GC, many parts of GC process causes STW. On the other hand, only the re-mark cause STW. And applications can keep 
+  running during the mark phase.
+  CMS GC executes re-mark process which stops all the applications threads, i.e. STW, and marks objects linked directly and
+  indirectly by the modified objects
+  CMS GC also adopts the policy of Generational GC
