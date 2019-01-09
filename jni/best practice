@@ -33,3 +33,6 @@ Ensure the code does not make any JNI calls or block for any reason between call
 12. statci vs non-static
 13. registerNativeMethods
   Jni_onload
+  
+14. calling back for parameters
+  pass fields of object or whole object to JNI native. 
