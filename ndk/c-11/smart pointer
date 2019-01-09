@@ -1,0 +1,20 @@
+sp means StrongPointer in Android, the memory that occupied by the pointed object will be freed if the reference count equals to 0. wp means WeakPointer, so if I have a weak pointer, I don't care whether the referenced object is alive or not. It might be used in some cache and comparison scenarios.
+
+First, take a quick look at the sp implementation in StrongPointer.h.
+
+It is simply a wrapper for reference counting. For example,
+
+template<typename T> template<typename U>
+sp<T>& sp<T>::operator = (U* other)
+{
+    if (other) ((T*)other)->incStrong(this);
+    if (m_ptr) m_ptr->decStrong(this);
+    m_ptr = other;
+    return *this;
+}
+If you create a Strong Pointer by sp<IBinder> strongPointer, the m_ptr is the referenced object. As you can see in the source code, the sp template only represents a strong pointer so that system won't free the memory as long as I hold this sp. It doesn't maintain a reference counter. The counter is maintained in RefBase class. And in order to use the StrongPointer, your obj need to be an instance of RefBase.
+
+RefBase class maintains both strong reference counter and weak reference counter, the only difference is the referenced object will be freed if the strong counts to 0. Moreover, for an object managed by Refbase, it may referenced by some Strong Pointers and Weak Pointers simultaneously.
+
+You can see a widely uses of StrongPointers in Android framework, most of them are on IBinder object, a native binder object can passed through different processes. Different processes can hold strong pointers to a same object, the object won't be revoked by system as long as one process are still holding the pointer.
+
