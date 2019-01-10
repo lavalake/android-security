@@ -1,0 +1,5 @@
+https://github.com/codepath/android_guides/wiki/Sharing-Content-with-Intents
+Sharing Files with API 24 or higher
+
+If you are targeting Android API 24 or higher, private File URI resources (file:///) cannot be shared. You must instead wrap 
+the File object as a content provider (content://) using the FileProvider class.
