@@ -1,0 +1,2 @@
+LiveData is a lifecycle aware data holder class that also act as an observable object
+ViewModel is a lifecycle aware class that is designed to store and manage data that is associated with UI. 
