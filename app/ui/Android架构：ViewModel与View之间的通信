@@ -1,0 +1,32 @@
+解决方法
+LiveData / Observable越少越好。所以我们正在寻找的是一种聚合需要传递给View的信息的方法。在大多数情况下，ViewModel需要传达三件事：
+一：Data →这是需要在View上显示的内容,大多数代码示例都显示了如何将数据从ViewModel传递到View。
+二、Status→这是传给View的错误状态如验证错误、服务器错误等等
+三、State →UI状态，如进度指示器，对话框，每次开始观察ViewModel数据时都应传递给View。我们只需创建一个数据类来保存状态
+
+对于status的设计
+
+View只需要观察状态LiveData并根据不同的状态/错误执行操作，在这个例子中，我们可以轻松地为每个错误显示不同的toast / snackbar。
+viewModel.getStatus().observe(this, Observer { handleStatus(it) })
+private fun handleStatus(status: Status?) {
+   when (status) {
+       Status.EMPTY_FIRST_NAME -> Toast.makeText(activity, "Please enter your first name!", Toast.LENGTH_SHORT).show()
+       Status.EMPTY_LAST_NAME -> Toast.makeText(activity, "Please enter your last name", Toast.LENGTH_SHORT).show()
+       Status.EMPTY_CITY -> Toast.makeText(activity, "Please choose your home city", Toast.LENGTH_SHORT).show()
+       Status.INVALID_URI -> Toast.makeText(activity, "Unable to load the photo", Toast.LENGTH_SHORT).show()
+       Status.SUCCESS -> {
+           startActivity(HomeFragment.newIntent(activity))
+           activity.finish()
+       }
+       else -> Toast.makeText(activity, "Something went wrong, please try again!", Toast.LENGTH_SHORT).show()
+   }
+}
+
+作者：Jomeslu
+链接：https://www.jianshu.com/p/90033d60317e
+來源：简书
+简书著作权归作者所有，任何形式的转载都请联系作者获得授权并注明出处。
+作者：Jomeslu
+链接：https://www.jianshu.com/p/90033d60317e
+來源：简书
+简书著作权归作者所有，任何形式的转载都请联系作者获得授权并注明出处。
