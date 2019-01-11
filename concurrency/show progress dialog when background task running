@@ -1,0 +1,7 @@
+1. use ViewModel to run the async task
+2. make a interface to make a method to updateProgress
+3. activity or fragment implment this interface
+4. register activity with ViewModel
+5. if activity destroyed, saveInstace the state
+6. when recreation, read the savedInstance, if should show Progress Dialog, query ViewModel for it.
+7. onProgress() of AsyncTask will call the updateProgress method of the activity
