@@ -1,0 +1,14 @@
+void property_init(void) {
+    init_property_area();  //初始化属性存储区域
+    load_properties_from_file(PROP_PATH_RAMDISK_DEFAULT); //加载default.prop文件
+}
+
+https://my.oschina.net/youranhongcha/blog/389640
+
+我们查看core/init/Init.c文件，可以看到init进程的main()函数，它里面和property相关的关键动作有：
+1）间接调用__system_property_area_init()：打开属性共享内存，并记入__system_property_area变量；
+2）间接调用init_workspace()：只读打开属性共享内存，并记入环境变量；
+3）根据init.rc，异步激发property_service_init_action()，该函数中会：
+    l  加载若干属性文本文件，将具体属性、属性值记入属性共享内存；
+    l  创建并监听socket；
+4）根据init.rc，异步激发queue_property_triggers_action()，将刚刚加载的属性对应的激发动作，推入action列表
