@@ -1,0 +1,20 @@
+1. activity switch
+2 onPause
+3 onCreate
+3 onStart
+3 onResume
+2 onSaveInstanceState
+2 onStop
+2. 第三步，进程被杀死，很暴力的，不会有任何生命周期函数被调用
+第四步，从最近程序列表中打开刚才的进程，进程会再次启动，activity会恢复，此时的启动和第一次启动主要有2点不一样，第一，
+onCreate的参数savedInstanceState不再是null，而是有数据了，savedInstanceState是个bundle里面会序列化的数据，
+在onCreate的时候就会去读取数据。第二，在onStart之后，onResume之前会调用一个onRestoreInstanceState
+3. 在使用onSaveInstanceState还需要注意几点
+  1、序列化尽量使用Parcelable而不是Serializable，
+  2. onSaveInstanceState建议只用来恢复activity用，别把数据存储什么的放到这里来
+  
+4. activity恢复原则
+  单个activity的进程回收后重启的过程，那么多个activity的进程呢？多个activity会被一起恢复吗？
+  不会的，只会恢复栈顶的activity，但是栈是恢复了的，
+  
+5. 总结下，进程回收之后，再从历史程序里点击的时候，进程会重启，然后只恢复栈顶的activity，其他栈内的activity只有在需要的时候被恢复
