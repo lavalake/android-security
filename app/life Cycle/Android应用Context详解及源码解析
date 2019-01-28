@@ -8,3 +8,8 @@ public static synchronized CustomManager getInstance(Context context)
 		}
 		return sInstance;
 	}
+
+https://blog.csdn.net/lmj623565791/article/details/40481055
+重点看Activity和Application，可以看到，和UI相关的方法基本都不建议或者不可使用Application，并且，
+前三个操作基本不可能在Application中出现。实际上，只要把握住一点，凡是跟UI相关的，都应该使用Activity做为Context来处理；
+其他的一些操作，Service,Activity,Application等实例都可以，当然了，注意Context引用的持有，防止内存泄漏。
