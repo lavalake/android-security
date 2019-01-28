@@ -1,0 +1,10 @@
+https://blog.csdn.net/yanbober/article/details/45967639
+
+public static synchronized CustomManager getInstance(Context context)
+	{
+		if (sInstance == null)
+		{
+			sInstance = new CustomManager(context.getApplicationContext());
+		}
+		return sInstance;
+	}
