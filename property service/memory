@@ -12,3 +12,8 @@ https://my.oschina.net/youranhongcha/blog/389640
     l  加载若干属性文本文件，将具体属性、属性值记入属性共享内存；
     l  创建并监听socket；
 4）根据init.rc，异步激发queue_property_triggers_action()，将刚刚加载的属性对应的激发动作，推入action列表
+
+我们可以看到，在init进程的main()函数里，辗转打开了一个内存文件“/dev/__properties__”，并把它设定为128KB大小，接着调用mmap()将这块内存映射到
+init进程空间了。这个内存的首地址被记录在__system_property_area__全局变量里，以后每添加或修改一个属性，都会基于这个__system_property_area__
+变量来计算位置。
+
