@@ -4,3 +4,13 @@ https://patents.google.com/patent/US8688601B2/en
 https://www.sciencedirect.com/science/article/pii/S1574119215001662
 https://www.computer.org/csdl/proceedings/wiw/2016/4771/00/6039a104-abs.html
 https://ieeexplore.ieee.org/abstract/document/1259833
+
+Detecting Android malware using sequences of system calls
+  Our approach takes into account all the system calls
+  rather than a reduced set and we consider sequences
+  of system calls, rather than system calls taken in iso
+  We obtain a high detection accuracy (97%)
+  
+  An execution trace is a sequence t in which each element
+  represents a system call being issued by the application under
+  analysis (AUA):
