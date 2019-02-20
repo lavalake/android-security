@@ -1,0 +1,10 @@
+To set the stage for this lesson, here is how Android's management of bitmap memory has evolved:
+
+On Android Android 2.2 (API level 8) and lower, when garbage collection occurs, your app's threads get stopped. This causes a 
+lag that can degrade performance. Android 2.3 adds concurrent garbage collection, which means that the memory is reclaimed 
+soon after a bitmap is no longer referenced.
+On Android 2.3.3 (API level 10) and lower, the backing pixel data for a bitmap is stored in native memory. It is separate 
+from the bitmap itself, which is stored in the Dalvik heap. The pixel data in native memory is not released in a predictable
+manner, potentially causing an application to briefly exceed its memory limits and crash. From Android 3.0 (API level 11) 
+through Android 7.1 (API level 25), the pixel data is stored on the Dalvik heap along with the associated bitmap. 
+In Android 8.0 (API level 26), and higher, the bitmap pixel data is stored in the native heap.
