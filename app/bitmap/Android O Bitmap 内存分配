@@ -1,0 +1,46 @@
+https://kotlintc.com/articles/3875
+
+最终调用的是calloc函数，该函数和malloc是类似，都是直接在native heap上分配空间，返回地址。
+
+  所以结论是：Android O上通过BitmapFactory.decodeFile方法创建的Bitmap，其中的像素点数据集默认在native heap上分配的。
+  
+https://blog.csdn.net/happylishang/article/details/80404966
+8.0之后Bitmap内存分配有什么新特点
+其实从8.0的Bitmap.java类也能看出区别，之前的 private byte[] mBuffer成员不见了，取而代之的是private final long mNativePtr，也就说，Bitmap.java只剩下一个壳了，具体如下：
+
+public final class Bitmap implements Parcelable {
+    ...
+    // Convenience for JNI access
+    private final long mNativePtr;
+    ...
+ }
+static jobject Bitmap_creator(JNIEnv* env, jobject, jintArray jColors,
+                              jint offset, jint stride, jint width, jint height,
+                              jint configHandle, jboolean isMutable,
+                              jfloatArray xyzD50, jobject transferParameters) {
+    SkColorType colorType = GraphicsJNI::legacyBitmapConfigToColorType(configHandle);
+     ...
+     <!--关键点1 ，native层创建bitmap，并分配native内存-->
+    sk_sp<Bitmap> nativeBitmap = Bitmap::allocateHeapBitmap(&Bitmap);
+    if (!nativeBitmap) {
+        return NULL;
+    }
+    ...
+    return createBitmap(env, nativeBitmap.release(), getPremulBitmapCreateFlags(isMutable));
+}
+看一下allocateHeapBitmap如何分配内存
+
+static sk_sp<Bitmap> allocateHeapBitmap(size_t size, const SkImageInfo& info, size_t rowBytes) {
+    <!--关键点1 直接calloc分配内存-->
+    void* addr = calloc(size, 1);
+    if (!addr) {
+        return nullptr;
+    }
+    <!--关键点2 创建native Bitmap-->
+    return sk_sp<Bitmap>(new Bitmap(addr, size, info, rowBytes));
+}
+--------------------- 
+作者：看书的小蜗牛 
+来源：CSDN 
+原文：https://blog.csdn.net/happylishang/article/details/80404966 
+版权声明：本文为博主原创文章，转载请附上博文链接！
