@@ -2,3 +2,14 @@ http://yuanfentiank789.github.io/2016/09/06/ndk_crash/
 
 http://huqi.tech/index.php/2017/08/05/jni_attention/
 http://www.voidcn.com/article/p-nbehondp-bph.html
+
+Motivation
+Access Low-level OS features – ioctl, poll, etc.
+pExplore advanced CPU features – NEON
+instruction set for signal and video processing
+pReuse large or legacy C/C++ programs
+pImprove performance of computationally
+intensive operations
+pOpenGL
+pOpenSL ES
+avoid java vm memory limitation
