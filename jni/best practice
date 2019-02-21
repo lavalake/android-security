@@ -5,6 +5,7 @@
 2. JNIEnv
   The JNI specification states that each JNIEnv is local to a thread.A JVM can rely on this assumption, 
   storing additional thread-local information within the JNIEnv. 
+  use JavaVM to get JNIEnv
 3. exception
 4. Correctness Tip #5
 Ensure the code does not make any JNI calls or block for any reason between calls to GetXXXCritical() and ReleaseXXXCritical().
@@ -19,7 +20,8 @@ Ensure the code does not make any JNI calls or block for any reason between call
 8. local reference overflow
 9. JNI deadlock
 10. JavaVM and JNIEnv
-  JNI defines two key data structures, "JavaVM" and "JNIEnv". Both of these are essentially pointers to pointers to function tables
+  JNI defines two key data structures, "JavaVM" and "JNIEnv". Both of these are essentially pointers to pointers to function
+  tables
   The JNIEnv provides most of the JNI functions. Your native functions all receive a JNIEnv as the first argument
   The JNIEnv is used for thread-local storage. For this reason, you cannot share a JNIEnv between threads. If 
   a piece of code has no other way to get its JNIEnv, you should share the JavaVM, and use GetEnv to discover
