@@ -1,0 +1,4 @@
+https://www.geeksforgeeks.org/smart-pointers-cpp/
+ Smart pointer is a wrapper class over a pointer with operator like * and -> overloaded.
+ automatic destruction (yes, we don’t have to explicitly use delete), reference counting and more.
+ The idea is to make a class with a pointer, destructor and overloaded operators like * and ->
